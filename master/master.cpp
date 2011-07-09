@@ -27,7 +27,14 @@ ISR(TIMER1_OVF_vect) {
 
 	// wait until transmit buffer is empty
 	while (!(UCSR0A & _BV(UDRE0)));
-	UDR0 = val++;
+	++val;
+	// If the number is even, set the address bit.  The slave should only
+	// handle these even numbers, and ignore the rest.
+	if (val & 1)
+		UCSR0B &= ~_BV(TXB80);
+	else
+		UCSR0B |= _BV(TXB80);
+	UDR0 = val;
 }
 
 int main() {
@@ -45,8 +52,8 @@ int main() {
 	UBRR0L = (uint8_t)(PEEL_UBRR_VAL);
 	// transmitter only
 	UCSR0B = _BV(TXEN0)
-	// Asynchronous, no parity, 1 stop bit, 8 data bits
-	/*| _BV(UCSZ02)*/;
+	// Asynchronous, no parity, 1 stop bit, 9 data bits
+		| _BV(UCSZ02);
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
 #if defined(SERIAL_U2X)
 	UCSR0A = _BV(U2X0);

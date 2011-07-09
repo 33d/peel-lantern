@@ -19,8 +19,9 @@
 #define STATUS_LED (_BV(5)) // arduino 13
 
 ISR(RX_vect) {
+	uint8_t addr = UCSRB & _BV(RXB8);
 	uint8_t data = UDR;
-	printf("Got %02x\n", data);
+	printf("Got %x%02x\n", addr, data);
 }
 
 int main(void) {
