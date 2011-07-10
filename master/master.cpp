@@ -20,21 +20,34 @@ void die(char* label, uint8_t status) {
 	sleep_cpu();
 }
 
-ISR(TIMER1_OVF_vect) {
-	static uint8_t val = 0;
+void send(uint8_t c) {
+	UDR0 = c;
+	// wait until transmit buffer is empty.  The datasheet says to do this
+	// BEFORE you send the data, but I want to immediately change the
+	// address bit, so it makes more sense here to do it after.  (Changing
+	// the address bit before the data is sent seems to affect the
+	// transmission.)
+	while (!(UCSR0A & _BV(UDRE0)));
+}
 
+ISR(TIMER1_OVF_vect) {
 	PINB |= STATUS_LED;
 
-	// wait until transmit buffer is empty
-	while (!(UCSR0A & _BV(UDRE0)));
-	++val;
-	// If the number is even, set the address bit.  The slave should only
-	// handle these even numbers, and ignore the rest.
-	if (val & 1)
-		UCSR0B &= ~_BV(TXB80);
-	else
-		UCSR0B |= _BV(TXB80);
-	UDR0 = val;
+	// Enter address mode
+	UCSR0B |= _BV(TXB80);
+	// Send a blank first, to confirm that it works
+	send(0xFE);
+	// Send the address frame for slave 0
+	send(0);
+	UCSR0B &= ~_BV(TXB80);
+
+	for (uint8_t i = 0; i < 24; i++)
+		send(i);
+
+	// Send the apply frame
+	UCSR0B |= _BV(TXB80);
+	send(0xFF);
+	UCSR0B &= ~_BV(TXB80);
 }
 
 int main() {
