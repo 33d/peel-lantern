@@ -3,6 +3,8 @@
 #include <avr/eeprom.h>
 #include <avr/sleep.h>
 
+#include "Tlc5940.h"
+
 #if defined __AVR_ATmega1280__
 // Configure the serial port for debugging
 #define SERIAL_BAUD 500000
@@ -16,18 +18,16 @@
 #include "atmegax8.h"
 #endif
 
-#define NUM_TLCS 1
-
 #define STATUS_LED (_BV(5)) // arduino 13
 
 // 0xFF = idle, 0-(NUM_TLCS*24) = receiving data
 uint8_t state = 0xFF;
 uint8_t id = 0;
 
-// TODO: Replace with the buffer in the TLC library
-uint8_t tlc_data[NUM_TLCS * 24];
+uint8_t *tlc_data = tlc_GSData;
 
 void blank() {
+	Tlc.clear();
 	puts("Blank");
 }
 
@@ -36,6 +36,7 @@ void apply() {
 	for (uint8_t i = 0; i < NUM_TLCS * 24; i++)
 		printf("%02X", tlc_data[i]);
 	printf("\n");
+	Tlc.update();
 }
 
 ISR(RX_vect) {
@@ -78,6 +79,9 @@ int main(void) {
 	PORTB |= STATUS_LED;
 
 	puts("Ready");
+
+	// Start the TLC on a fairly dark colour
+	Tlc.init(0xFF);
 
 	sei();
 

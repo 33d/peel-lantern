@@ -2,7 +2,7 @@ PROJECT	       = slave
 
 PRG            = $(PROJECT)
 OBJECTS        = 
-AVR_OBJECTS    = serial $(PROJECT) 
+AVR_OBJECTS    = serial Tlc5940 $(PROJECT) 
 TEST_OBJECTS   = 
 
 ARDUINO_HOME   = /opt/arduino-0018

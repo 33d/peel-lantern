@@ -14,6 +14,14 @@
 #endif
 
 #define STATUS_LED _BV(5); // arduino 13
+
+// Some fairly random test data.  I have no idea what this will do...
+const uint8_t sample_data[] = {
+		0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
+		0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
+		0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00
+};
+
 void die(char* label, uint8_t status) {
 	cli();
 	PORTB |= STATUS_LED;
@@ -42,7 +50,7 @@ ISR(TIMER1_OVF_vect) {
 	UCSR0B &= ~_BV(TXB80);
 
 	for (uint8_t i = 0; i < 24; i++)
-		send(i);
+		send(sample_data[i]);
 
 	// Send the apply frame
 	UCSR0B |= _BV(TXB80);
