@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include <avr/pgmspace.h>
 
-#define PEEL_BAUD 300
+#define PEEL_BAUD 500000
 // #define PEEL_U2X
 #if defined(PEEL_U2X)
 #define PEEL_UBRR_VAL ((F_CPU / 8 / PEEL_BAUD) - 1)

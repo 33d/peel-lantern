@@ -11,7 +11,7 @@
 //#define SERIAL_U2X 0
 #include "serial.h"
 
-#define PEEL_BAUD 300
+#define PEEL_BAUD 500000
 #include "atmega1280.h"
 
 #else
@@ -28,14 +28,9 @@ uint8_t *tlc_data = tlc_GSData;
 
 void blank() {
 	Tlc.clear();
-	puts("Blank");
 }
 
 void apply() {
-	printf("Apply: ");
-	for (uint8_t i = 0; i < NUM_TLCS * 24; i++)
-		printf("%02X", tlc_data[i]);
-	printf("\n");
 	Tlc.update();
 }
 
@@ -45,7 +40,6 @@ ISR(RX_vect) {
 
 	if (isAddr) {
 		if (data == id) {
-			printf("Got address frame, data: ");
 			state = 0;
 			// Turn on interrupts for data frames
 			UCSRA &= ~(_BV(MPCM));
@@ -56,12 +50,10 @@ ISR(RX_vect) {
 		}
 	} else {
 		if (state < NUM_TLCS * 24) {
-			printf("%02x", data);
 			tlc_data[state++] = data;
 		}
 		if (state >= NUM_TLCS * 24) {
 			// End of data, go back to address mode
-			puts(", end");
 			state = 0xFF;
 			UCSRA |= _BV(MPCM);
 		}
