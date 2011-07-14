@@ -15,13 +15,6 @@
 
 #define STATUS_LED _BV(5); // arduino 13
 
-// Some fairly random test data.  I have no idea what this will do...
-const uint8_t sample_data[] = {
-		0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
-		0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00,
-		0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00
-};
-
 void die(char* label, uint8_t status) {
 	cli();
 	PORTB |= STATUS_LED;
@@ -40,6 +33,7 @@ void send(uint8_t c) {
 
 ISR(TIMER1_OVF_vect) {
 	PINB |= STATUS_LED;
+	static uint8_t lit = 1;
 
 	// Enter address mode
 	UCSR0B |= _BV(TXB80);
@@ -49,8 +43,28 @@ ISR(TIMER1_OVF_vect) {
 	send(0);
 	UCSR0B &= ~_BV(TXB80);
 
+	uint8_t lit_idx = lit / 2 * 3;
 	for (uint8_t i = 0; i < 24; i++)
-		send(sample_data[i]);
+		if (lit & 1) {
+			// Odd number
+			if (i == lit_idx + 1)
+				send(0x0F);
+			else if (i == lit_idx + 2)
+				send(0xFF);
+			else
+				send(0);
+		} else {
+			// even number
+			if (i == lit_idx)
+				send(0xFF);
+			else if (i == lit_idx + 1)
+				send(0xF0);
+			else
+				send(0);
+		}
+	++lit;
+	if (lit > 12)
+		lit = 1;
 
 	// Send the apply frame
 	UCSR0B |= _BV(TXB80);
@@ -59,7 +73,7 @@ ISR(TIMER1_OVF_vect) {
 }
 
 int main() {
-	OCR1A = F_CPU / 1024;
+	OCR1A = F_CPU / 1024 / 12;
 
 	TCCR1A = _BV(WGM11) | _BV(WGM10); // Fast PWM, reset at OCR1A
 	TCCR1B = _BV(WGM13) | _BV(WGM12) // Fast PWM
