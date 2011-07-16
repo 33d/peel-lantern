@@ -35,6 +35,13 @@ void show_data() {
 	message_sent = 0;
 }
 
+void show_error(uint8_t error) {
+	printf("Error %d\n", error);
+	Tlc.set(error + 1, 4095);
+	sei();
+	sleep_mode();
+}
+
 void blank() {
 	Tlc.clear();
 }
@@ -54,8 +61,12 @@ ISR(RX_vect) {
 			// Turn on interrupts for data frames
 			UCSRA &= ~(_BV(MPCM));
 		} else if (data == 0xFF) {
+			if (state != 0xFF)
+				show_error(1);
 			apply();
 		} else if (data == 0xFE) {
+			if (state != 0xFF)
+				show_error(2);
 			blank();
 		}
 	} else {
