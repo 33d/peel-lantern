@@ -26,11 +26,21 @@ uint8_t id = 0;
 
 uint8_t *tlc_data = tlc_GSData;
 
+volatile uint8_t message_sent = 0;
+
+void show_data() {
+	for (uint8_t i = 0; i < NUM_TLCS * 24; i++)
+		printf("%02x", tlc_data[i]);
+	printf("\n");
+	message_sent = 0;
+}
+
 void blank() {
 	Tlc.clear();
 }
 
 void apply() {
+	message_sent = 1;
 	Tlc.update();
 }
 
@@ -77,7 +87,11 @@ int main(void) {
 
 	sei();
 
-	while (1)
+	while (1) {
 		sleep_mode();
+		// Run the serial code here, so interrupts can still run
+		if (message_sent)
+			show_data();
+	}
 }
 
