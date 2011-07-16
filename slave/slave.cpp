@@ -21,7 +21,7 @@
 #define STATUS_LED (_BV(5)) // arduino 13
 
 // 0xFF = idle, 0-(NUM_TLCS*24) = receiving data
-uint8_t state = 0xFF;
+volatile uint8_t state = 0xFF;
 uint8_t id = 0;
 
 uint8_t *tlc_data = tlc_GSData;
