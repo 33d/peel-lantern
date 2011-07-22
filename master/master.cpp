@@ -15,6 +15,12 @@
 
 #define STATUS_LED _BV(5); // arduino 13
 
+const uint8_t data[] = {
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0x44, 0x88, 0xBB, 0xFF, 0xBB, 0x88, 0x44, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
 void die(char* label, uint8_t status) {
 	cli();
 	PORTB |= STATUS_LED;
@@ -43,10 +49,10 @@ ISR(TIMER1_OVF_vect) {
 	send(0);
 	UCSR0B &= ~_BV(TXB80);
 
-	for (uint8_t i = 0; i < 12; i++)
-		send(lit == i ? 0xFF : 0);
+	for (uint8_t i = lit; i < lit + 12; i++)
+		send(data[i]);
 	++lit;
-	if (lit >= 12)
+	if (lit >= 24)
 		lit = 0;
 
 	// Send the apply frame
