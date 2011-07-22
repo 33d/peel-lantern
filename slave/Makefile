@@ -13,8 +13,8 @@ PROGRAMMER     = arduino
 UPLOAD_SPEED   = 57600
 UPLOAD_PORT    = /dev/ttyUSB0
 
-#MCU_TARGET     = atmega328p
-MCU_TARGET     = atmega1280
+MCU_TARGET     = atmega328p
+#MCU_TARGET     = atmega1280
 #MCU_TARGET     = atmega168
 OPTIMIZE       = -Os
 

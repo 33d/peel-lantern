@@ -19,13 +19,13 @@
 #if defined(PEEL_U2X)
 #define PEEL_UBRR_VAL ((F_CPU / 8 / PEEL_BAUD) - 1)
 #else
-#define PEEL_UBRR_VAL ((F_CPU / 16 / SERIAL_BAUD) - 1)
+#define PEEL_UBRR_VAL ((F_CPU / 16 / PEEL_BAUD) - 1)
 #endif
 
 void peel_serial_init() {
   // Init serial
-  UBRR0H = (uint8_t) (UBRR_VAL >> 8);
-  UBRR0L = (uint8_t) (UBRR_VAL);
+  UBRR0H = (uint8_t) (PEEL_UBRR_VAL >> 8);
+  UBRR0L = (uint8_t) (PEEL_UBRR_VAL);
   // rx, enable interrupt for rx
   UCSR0B = _BV(RXEN0) | _BV(RXCIE0)
   // Asynchronous, no parity, 1 stop bit, 9 data bits (9th bit is the address

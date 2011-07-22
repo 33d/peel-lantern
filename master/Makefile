@@ -2,7 +2,7 @@ PROJECT	       = master
 
 PRG            = $(PROJECT)
 OBJECTS        = 
-AVR_OBJECTS    = $(PROJECT) 
+AVR_OBJECTS    = $(PROJECT)  serial
 TEST_OBJECTS   = 
 
 ARDUINO_HOME   = /opt/arduino-0018
@@ -13,8 +13,8 @@ PROGRAMMER     = arduino
 UPLOAD_SPEED   = 57600
 UPLOAD_PORT    = /dev/ttyUSB0
 
-MCU_TARGET     = atmega328p
-#MCU_TARGET     = atmega1280
+#MCU_TARGET     = atmega328p
+MCU_TARGET     = atmega1280
 #MCU_TARGET     = atmega168
 OPTIMIZE       = -Os
 

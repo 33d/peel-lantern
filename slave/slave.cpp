@@ -5,13 +5,14 @@
 
 #include "Tlc5940.h"
 
+#define PEEL_BAUD 500000
+
 #if defined __AVR_ATmega1280__
 // Configure the serial port for debugging
 #define SERIAL_BAUD 500000
 //#define SERIAL_U2X 0
 #include "serial.h"
 
-#define PEEL_BAUD 500000
 #include "atmega1280.h"
 
 #else
@@ -89,7 +90,9 @@ int main(void) {
 
 	DDRB = 0xFF;
 
+#if defined __AVR_ATmega1280__
 	serial_init();
+#endif
 
 	peel_serial_init();
 
