@@ -20,6 +20,10 @@
 
 #define STATUS_LED (_BV(5)) // arduino 13
 
+// The start and end TLC pins to activate
+#define TLC_START 1 // inclusive
+#define TLC_END 13 // exclusive
+
 // 0xFF = idle, 0-(NUM_TLCS*24) = receiving data
 volatile uint8_t state = 0xFF;
 uint8_t id = 0;
@@ -57,7 +61,7 @@ ISR(RX_vect) {
 
 	if (isAddr) {
 		if (data == id) {
-			state = 0;
+			state = TLC_START;
 			// Turn on interrupts for data frames
 			UCSRA &= ~(_BV(MPCM));
 		} else if (data == 0xFF) {
@@ -70,10 +74,10 @@ ISR(RX_vect) {
 			blank();
 		}
 	} else {
-		if (state < NUM_TLCS * 24) {
-			tlc_data[state++] = data;
+		if (state < TLC_END) {
+			Tlc.set(state++, ((uint16_t) data) << 4);
 		}
-		if (state >= NUM_TLCS * 24) {
+		if (state >= TLC_END) {
 			// End of data, go back to address mode
 			state = 0xFF;
 			UCSRA |= _BV(MPCM);

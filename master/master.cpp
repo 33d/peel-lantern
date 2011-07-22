@@ -33,7 +33,7 @@ void send(uint8_t c) {
 
 ISR(TIMER1_OVF_vect) {
 	PINB |= STATUS_LED;
-	static uint8_t lit = 1;
+	static uint8_t lit = 0;
 
 	// Enter address mode
 	UCSR0B |= _BV(TXB80);
@@ -43,28 +43,11 @@ ISR(TIMER1_OVF_vect) {
 	send(0);
 	UCSR0B &= ~_BV(TXB80);
 
-	uint8_t lit_idx = lit / 2 * 3;
-	for (uint8_t i = 0; i < 24; i++)
-		if (lit & 1) {
-			// Odd number
-			if (i == lit_idx + 1)
-				send(0x0F);
-			else if (i == lit_idx + 2)
-				send(0xFF);
-			else
-				send(0);
-		} else {
-			// even number
-			if (i == lit_idx)
-				send(0xFF);
-			else if (i == lit_idx + 1)
-				send(0xF0);
-			else
-				send(0);
-		}
+	for (uint8_t i = 0; i < 12; i++)
+		send(lit == i ? 0xFF : 0);
 	++lit;
-	if (lit > 12)
-		lit = 1;
+	if (lit >= 12)
+		lit = 0;
 
 	// Send the apply frame
 	UCSR0B |= _BV(TXB80);
