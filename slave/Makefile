@@ -48,6 +48,8 @@ TEST_DIR	= test
 BUILD_OBJS	= $(foreach OBJ,$(OBJECTS) $(AVR_OBJECTS),$(OBJ).avr.o)
 TEST_OBJS	= $(foreach OBJ,$(OBJECTS) $(TEST_OBJECTS),$(OBJ).o) test.o
 
+.PHONY: reset_arduino
+
 export CFLAGS CPPFLAGS F_CPU LDFLAGS ARDUINO_HOME CC CPP INCLUDES ARDUINO_CORE
 
 all: $(PRG).elf lst text eeprom
@@ -120,19 +122,26 @@ FIG2DEV                 = fig2dev
 EXTRA_CLEAN_FILES       = *.hex *.bin *.srec
 
 ifeq ($(PROGRAMMER),arduino)
-upload: $(PRG).hex
-	# Reset the Arduino first to activate the bootloader
-	stty 57600 raw ignbrk hup < $(UPLOAD_PORT)
-	$(ARDUINO_HOME)/hardware/tools/avrdude \
+AVRDUDE = $(ARDUINO_HOME)/hardware/tools/avrdude \
 		-C$(ARDUINO_HOME)/hardware/tools/avrdude.conf \
 		-p$(MCU_TARGET) -cstk500v1 -P$(UPLOAD_PORT) \
-		-b$(UPLOAD_SPEED) \
-		-Uflash:w:$^:i
-else
-upload: $(PRG).hex
-	avrdude \
-		-p$(MCU_TARGET) -c$(PROGRAMMER) -P$(UPLOAD_PORT) \
-		-b$(UPLOAD_SPEED) \
-		-Uflash:w:$^:i
-endif
+		-b$(UPLOAD_SPEED)
 
+reset_arduino:
+	# Reset the Arduino first to activate the bootloader
+	stty 57600 raw ignbrk hup < $(UPLOAD_PORT)
+
+else
+AVRDUDE = avrdude \
+		-p$(MCU_TARGET) -c$(PROGRAMMER) -P$(UPLOAD_PORT) \
+		-b$(UPLOAD_SPEED)
+
+reset_arduino:
+
+endif
+	
+upload: $(PRG).hex reset_arduino
+	$(AVRDUDE) -Uflash:w:$<:i
+
+setaddr: reset_arduino
+	$(AVRDUDE) -Ueeprom:w:$(ADDR):m
