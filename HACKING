@@ -1,2 +1,7 @@
 I'll assume all submitted patches are in the public domain.
 
+I'm using the coding style that the Eclipse CDT uses by default (indent with
+tabs, open brackets on the same line etc; but I'm not that fussy as long as
+the indenting is consistent).  I could include the Eclipse project files if
+they'll be useful to anyone.
+
