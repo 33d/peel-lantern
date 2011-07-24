@@ -5,16 +5,16 @@ OBJECTS        =
 AVR_OBJECTS    = $(PROJECT)  serial
 TEST_OBJECTS   = 
 
-ARDUINO_HOME   = /opt/arduino-0018
+ARDUINO_HOME  ?= /opt/arduino-0018
 
 # "arduino" or any programmer supported by avrdude
-PROGRAMMER     = arduino
+PROGRAMMER    ?= arduino
 #UPLOAD_SPEED   = 19200 # for Diecimilia
-UPLOAD_SPEED   = 57600
-UPLOAD_PORT    = /dev/ttyUSB0
+UPLOAD_SPEED  ?= 57600
+UPLOAD_PORT   ?= /dev/ttyUSB0
 
 #MCU_TARGET     = atmega328p
-MCU_TARGET     = atmega1280
+MCU_TARGET    ?= atmega1280
 #MCU_TARGET     = atmega168
 OPTIMIZE       = -Os
 
