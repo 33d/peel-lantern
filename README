@@ -9,6 +9,11 @@ out more about the lantern here:
 
 make, avrdude, gcc-avr, avr-libc.
 
+If you're programming an Arduino, you'll also need the Arduino IDE.  Set the
+environment variable ARDUINO_HOME to its path:
+
+  export ARDUINO_HOME=/opt/arduino-0021
+
 = Running =
 
 To run either the master or slave on an Arduino, just run:
@@ -18,6 +23,11 @@ To run either the master or slave on an Arduino, just run:
 This assumes the Arduino is on /dev/ttyUSB0.  You can change this:
 
   make UPLOAD_PORT=/dev/arduino upload
+
+This can also be specified using an environment variable:
+
+  export UPLOAD_PORT=/dev/buspirate
+  make upload
 
 You can use other programmers (any supported by avrdude):
 
