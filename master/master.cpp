@@ -5,9 +5,16 @@
 #include <inttypes.h>
 #include <avr/pgmspace.h>
 
+// Settings for the computer-side serial port
 #define SERIAL_BAUD 500000
+#if defined(SERIAL_U2X)
+#define UBRR_VAL ((F_CPU / 8 / SERIAL_BAUD) - 1)
+#else
+#define UBRR_VAL ((F_CPU / 16 / SERIAL_BAUD) - 1)
+#endif
 #include "serial.h"
 
+// Settings for the slave-side serial port
 #define PEEL_BAUD 500000
 // #define PEEL_U2X
 #if defined(PEEL_U2X)
@@ -76,6 +83,18 @@ int main() {
 	TCCR1B = _BV(WGM13) | _BV(WGM12) // Fast PWM
 					| _BV(CS12) | _BV(CS10); // 1024x prescaling
 	TIMSK1 = _BV(TOIE1); // Interrupt on overflow (=OCR1A)
+
+	// Initialize UART0, which talks to the computer.  Set everything but
+	// don't enable tx or rx - the "framebuffer" and "serial" modules will
+	// do that.
+	UBRR0H = (uint8_t) (UBRR_VAL >> 8);
+	UBRR0L = (uint8_t) (UBRR_VAL);
+	// Asynchronous, no parity, 1 stop bit, 8 data bits
+	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
+#if defined(SERIAL_U2X)
+	UCSR0A = _BV(U2X0);
+#endif
+
 
 #if defined __AVR_ATmega1280__
 	serial_init();

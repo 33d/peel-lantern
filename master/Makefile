@@ -2,7 +2,7 @@ PROJECT	       = master
 
 PRG            = $(PROJECT)
 OBJECTS        = 
-AVR_OBJECTS    = $(PROJECT)  serial
+AVR_OBJECTS    = $(PROJECT)  serial framebuffer
 TEST_OBJECTS   = 
 
 ARDUINO_HOME  ?= /opt/arduino-0018
