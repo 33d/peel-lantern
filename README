@@ -16,6 +16,9 @@ environment variable ARDUINO_HOME to its path:
 
 = Running =
 
+MAKE SURE YOU SET THE ADDRESS OF THE SLAVE (to 0 for now) before use (see 
+below) - otherwise you'll probably get no output!
+
 To run either the master or slave on an Arduino, just run:
 
   make upload
@@ -33,7 +36,7 @@ You can use other programmers (any supported by avrdude):
 
   make PROGRAMMER=buspirate upload
 
-To set the address of the slave chip (not used yet):
+To set the address of the slave chip:
 
   make ADDR=12 setaddr
 

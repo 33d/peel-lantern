@@ -30,7 +30,7 @@
 // has 16 outputs, the top 4 bits of this number contain the index of the chip
 // currently being written to.
 volatile uint8_t state = 0xFF;
-uint8_t id = 0;
+volatile uint8_t id;
 
 uint8_t *tlc_data = tlc_GSData;
 
@@ -110,6 +110,11 @@ int main(void) {
 	peel_serial_init();
 
 	PORTB |= STATUS_LED;
+
+	// What's my address?  It's stored in address 0 of the EEPROM.
+	EEAR = 0;
+	EECR |= _BV(EERE);
+	id = EEDR;
 
 	puts("Ready");
 
