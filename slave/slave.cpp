@@ -25,7 +25,10 @@
 #define TLC_START 1 // inclusive
 #define TLC_END 13 // exclusive
 
-// 0xFF = idle, 0-(NUM_TLCS*24) = receiving data
+// 0xFF = idle, 0-(NUM_TLCS*16) = receiving data
+// 0..NUM_TLCS * 16 is the index of the pin being written to.  Since the TLC
+// has 16 outputs, the top 4 bits of this number contain the index of the chip
+// currently being written to.
 volatile uint8_t state = 0xFF;
 uint8_t id = 0;
 
@@ -75,13 +78,23 @@ ISR(RX_vect) {
 			blank();
 		}
 	} else {
-		if (state < TLC_END) {
+		// Do we still have more data for this chip?  The bottom 4 bits tell
+		// us the pin for the current chip.
+		if ((state & 0x0F) < TLC_END) {
 			Tlc.set(state++, ((uint16_t) data) << 4);
 		}
-		if (state >= TLC_END) {
-			// End of data, go back to address mode
-			state = 0xFF;
-			UCSRA |= _BV(MPCM);
+		if ((state & 0x0F) >= TLC_END) {
+			// Set state to pin 0 of the next chip
+			state = (state & 0xF0) + 16;
+			// Have we run out of chips to write to?
+			if (state >= NUM_TLCS * 16) {
+				// End of data, go back to address mode
+				state = 0xFF;
+				UCSRA |= _BV(MPCM);
+		    } else {
+		    	// go to the next chip
+		    	state += TLC_START;
+		    }
 		}
 	}
 }
