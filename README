@@ -1,0 +1,43 @@
+= Introduction =
+
+This is the firmware that will hopefully run the Peel Street Lantern.  Find
+out more about the lantern here:
+
+  http://www.hackerspace-adelaide.org.au/wiki/Peel_Street_Lantern 
+
+= Prerequisites =
+
+make, avrdude, gcc-avr, avr-libc.
+
+= Running =
+
+To run either the master or slave on an Arduino, just run:
+
+  make upload
+
+This assumes the Arduino is on /dev/ttyUSB0.  You can change this:
+
+  make UPLOAD_PORT=/dev/arduino upload
+
+You can use other programmers (any supported by avrdude):
+
+  make PROGRAMMER=buspirate upload
+
+There are a few other parameters in the Makefile that you might need to change:
+
+ - MCU_TARGET is the AVR chip you're using (see the avrdude docs)
+ - UPLOAD_SPEED is the serial speed.  For the Decimilia, you need to use 19200.
+
+Someday I need to add a way to set the address of the slave chip.
+
+The Makefile supports unit testing using cunit, which is what the TEST_OBJECTS
+property is for and why the AVR files are compiled with .avr.o.  This project
+doesn't have unit tests at the moment.
+
+= Debugging =
+
+If you're using an Arduino Mega, you can read debugging information from the
+USB port:
+
+  $ stty 500000 raw ignbrk hup < /dev/ttyUSB0 && cat /dev/ttyUSB0 
+
