@@ -20,7 +20,7 @@ OPTIMIZE       = -Os
 
 DEFS           = -DF_CPU=16000000L
 #DEFS           = -DF_CPU=8000000L
-LIBS           =
+LIBS           = -lm
 TEST_LIBS       = -lcunit
 
 # You should not have to change anything below here.
@@ -55,7 +55,8 @@ export CFLAGS CPPFLAGS F_CPU LDFLAGS ARDUINO_HOME CC CPP INCLUDES ARDUINO_CORE
 all: $(PRG).elf lst text eeprom
 
 $(PRG).elf: $(BUILD_OBJS)
-	$(AVRCPP) $(AVRCPPFLAGS) $(AVRLDFLAGS) -o $@ $^ $(LIBS)
+	# I have no idea why I need $(LIBS) twice
+	$(AVRCPP) $(AVRCPPFLAGS) $(AVRLDFLAGS) -o $@ $(LIBS) $^ $(LIBS)
 
 %.avr.o : %.c 
 	$(AVRCC) $(AVRCFLAGS) $(INCLUDES) -c -o $@ $<
