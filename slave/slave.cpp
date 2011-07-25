@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <avr/sleep.h>
+#include <math.h>
 
 #include "Tlc5940.h"
 
@@ -33,6 +34,13 @@ volatile uint8_t state = 0xFF;
 volatile uint8_t id;
 
 uint8_t *tlc_data = tlc_GSData;
+
+// The lookup table for the LED brightness.  If we need the RAM space, this
+// could be pregenerated, and stored in flash.
+uint16_t lookup[256];
+// The magic number that adjusts the brightness - higher numbers make
+// mid-range values darker
+#define BRIGHTNESS 3
 
 volatile uint8_t message_sent = 0;
 
@@ -81,7 +89,7 @@ ISR(RX_vect) {
 		// Do we still have more data for this chip?  The bottom 4 bits tell
 		// us the pin for the current chip.
 		if ((state & 0x0F) < TLC_END) {
-			Tlc.set(state++, ((uint16_t) data) << 4);
+			Tlc.set(state++, lookup[data]);
 		}
 		if ((state & 0x0F) >= TLC_END) {
 			// Set state to pin 0 of the next chip
@@ -99,8 +107,19 @@ ISR(RX_vect) {
 	}
 }
 
-int main(void) {
+void generate_lookup() {
+	// The lookup value is for the formula y = nx^a, where x is the incoming
+	// pixel value, y is the LED value, and a is BRIGHTNESS.
+	float n = 4096.0 / pow(256, BRIGHTNESS);
+	uint8_t i = 0;
+	// don't use "for" with the 8-bit value!
+	do {
+		lookup[i] = n * pow(i, BRIGHTNESS);
+	} while (++i != 0);
+}
 
+int main(void) {
+    generate_lookup();
 	DDRB = 0xFF;
 
 #if defined __AVR_ATmega1280__
