@@ -18,6 +18,6 @@ void Framebuffer::handle(uint8_t data) {
 		next = buf;
 }
 
-ISR(USART1_RX_vect) {
+ISR(USART0_RX_vect) {
 	fb.handle(UDR0);
 }
