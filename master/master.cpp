@@ -31,38 +31,49 @@ void die(char* label, uint8_t status) {
 	sleep_cpu();
 }
 
-void send(uint8_t c) {
-	UDR = c;
-	// wait until transmit buffer is empty.  The datasheet says to do this
-	// BEFORE you send the data, but I want to immediately change the
-	// address bit, so it makes more sense here to do it after.  (Changing
-	// the address bit before the data is sent seems to affect the
-	// transmission.)
-	while (!(UCSRA & _BV(UDRE)));
+ISR(TIMER1_OVF_vect) {
+	// Just turn on the UART buffer interrupt, the routine will take care of
+	// the rest
+	UCSR1B |= _BV(UDRIE1);
 }
 
-ISR(TIMER1_OVF_vect) {
+ISR(USART1_UDRE_vect) {
 	PINB |= STATUS_LED;
+	static int8_t state = -2;
 	static uint8_t lit = 0;
 
-	// Enter address mode
-	UCSRB |= _BV(TXB8);
-	// Send a blank first, to confirm that it works
-	send(0xFE);
-	// Send the address frame for slave 0
-	send(0);
-	UCSRB &= ~_BV(TXB8);
+	// Start - blank the display
+	if (state == -2) {
+		// Enter address mode
+		UCSRB |= _BV(TXB8);
+		// Send a blank first, to confirm that it works
+		UDR = 0xFE;
+	} else if (state == -1) {
+		// We're still in address mode
+		// Send the address frame for slave 0
+		UDR = 0;
+		// and enter data mode
+		UCSRB &= ~_BV(TXB8);
+	} else if (state < 12) {
+		// Send the data bits
+		UDR = data[lit + state];
+	} else if (state >= 12) {
+		// End of data
+		// Don't send another interrupt when the buffer is empty
+		UCSR1B &= ~(_BV(UDRIE1));
 
-	for (uint8_t i = lit; i < lit + 12; i++)
-		send(data[i]);
-	++lit;
-	if (lit >= 24)
-		lit = 0;
+		// Send the "apply" frame
+		UCSRB |= _BV(TXB8);
+		UDR = 0xFF;
 
-	// Send the apply frame
-	UCSRB |= _BV(TXB8);
-	send(0xFF);
-	UCSRB &= ~_BV(TXB8);
+		++lit;
+		if (lit >= 24)
+			lit = 0;
+		state = -2;
+		return;
+	}
+
+	++state;
 }
 
 int main() {
