@@ -49,8 +49,8 @@
 #define disable_XLAT_pulses()   TCCR1A = _BV(COM1B1)
 
 extern volatile uint8_t tlc_needXLAT;
-extern volatile void (*tlc_onUpdateFinished)(void);
-extern uint8_t tlc_GSData[NUM_TLCS * 24];
+void tlc_onUpdateFinished();
+extern uint8_t* tlc_GSData;
 
 /** The main Tlc5940 class for the entire library.  An instance of this class
     will be preinstantiated as Tlc. */

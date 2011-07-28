@@ -34,7 +34,7 @@ volatile uint8_t tlc_needXLAT;
 
 /** Some of the extened library will need to be called after a successful
     update. */
-volatile void (*tlc_onUpdateFinished)(void);
+//volatile void (*tlc_onUpdateFinished)(void);
 
 /** Packed grayscale data, 24 bytes (16 * 12 bits) per TLC.
 
@@ -52,7 +52,8 @@ volatile void (*tlc_onUpdateFinished)(void);
     \note Normally packing data like this is bad practice.  But in this
           situation, shifting the data out is really fast because the format of
           the array is the same as the format of the TLC's serial interface. */
-uint8_t tlc_GSData[NUM_TLCS * 24];
+// I'll set this myself - it's going to point part way into the data buffer
+//uint8_t tlc_GSData[NUM_TLCS * 24];
 
 /** Don't add an extra SCLK pulse after switching from dot-correction mode. */
 static uint8_t firstGSInput;
@@ -64,7 +65,7 @@ ISR(TIMER1_OVF_vect)
     clear_XLAT_interrupt();
     tlc_needXLAT = 0;
     if (tlc_onUpdateFinished) {
-        sei();
+        //sei();
         tlc_onUpdateFinished();
     }
 }

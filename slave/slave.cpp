@@ -26,6 +26,8 @@
 #define TLC_START 1 // inclusive
 #define TLC_END 13 // exclusive
 
+#define ROWS 8
+
 // 0xFF = idle, 0-(NUM_TLCS*16) = receiving data
 // 0..NUM_TLCS * 16 is the index of the pin being written to.  Since the TLC
 // has 16 outputs, the top 4 bits of this number contain the index of the chip
@@ -33,7 +35,10 @@
 volatile uint8_t state = 0xFF;
 volatile uint8_t id;
 
-uint8_t *tlc_data = tlc_GSData;
+uint8_t tlc_data[NUM_TLCS * 24 * ROWS];
+// The data that the TLC library uses.  I've removed it from Tlc5940.cpp; this
+// one will point somewhere into tlc_data depending on the row.
+uint8_t* tlc_GSData = tlc_data;
 
 // The lookup table for the LED brightness.  If we need the RAM space, this
 // could be pregenerated, and stored in flash.
@@ -43,6 +48,20 @@ uint16_t lookup[256];
 #define BRIGHTNESS 3
 
 volatile uint8_t message_sent = 0;
+
+void updateRow() {
+	static uint8_t row = 0;
+	++row;
+	if (row >= ROWS)
+		row = 0;
+	tlc_GSData = tlc_data + row * NUM_TLCS * 24;
+	Tlc.update();
+}
+
+// Called just after the data is committed to the output pins
+void tlc_onUpdateFinished() {
+	updateRow();
+}
 
 void show_data() {
 	for (uint8_t i = 0; i < NUM_TLCS * 24; i++)
