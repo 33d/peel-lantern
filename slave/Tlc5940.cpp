@@ -200,10 +200,10 @@ uint8_t Tlc5940::update(void)
            channel 0, OUT0 of the next TLC is channel 16, etc.
     \param value (0-4095).  The grayscale value, 4095 is maximum.
     \see get */
-void Tlc5940::set(TLC_CHANNEL_TYPE channel, uint16_t value)
+void Tlc5940::set(TLC_CHANNEL_TYPE channel, uint16_t value, uint8_t* buf)
 {
     TLC_CHANNEL_TYPE index8 = (NUM_TLCS * 16 - 1) - channel;
-    uint8_t *index12p = tlc_GSData + ((((uint16_t)index8) * 3) >> 1);
+    uint8_t *index12p = buf + ((((uint16_t)index8) * 3) >> 1);
     if (index8 & 1) { // starts in the middle
                       // first 4 bits intact | 4 top bits of value
         *index12p = (*index12p & 0xF0) | (value >> 8);

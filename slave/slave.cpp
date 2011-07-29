@@ -120,7 +120,8 @@ ISR(RX_vect) {
 		// Do we still have more data for this chip?  The bottom 4 bits tell
 		// us the pin for the current chip.
 		if ((state & 0x0F) < TLC_END) {
-			Tlc.set(state++, lookup[data]);
+			// Be sure to update the correct part of the framebuffer
+			Tlc.set(state++, lookup[data], tlc_data);
 		}
 		if ((state & 0x0F) >= TLC_END) {
 			// Set state to pin 0 of the next chip

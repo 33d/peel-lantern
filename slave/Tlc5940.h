@@ -60,7 +60,7 @@ class Tlc5940
     void init(uint16_t initialValue = 0);
     void clear(void);
     uint8_t update(void);
-    void set(TLC_CHANNEL_TYPE channel, uint16_t value);
+    void set(TLC_CHANNEL_TYPE channel, uint16_t value, uint8_t* buf = tlc_GSData);
     uint16_t get(TLC_CHANNEL_TYPE channel);
     void setAll(uint16_t value);
 #if VPRG_ENABLED
