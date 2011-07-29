@@ -56,11 +56,18 @@ volatile struct {
 
 void updateRow() {
 	static uint8_t row = 0;
+	PORTC = 0;
 	++row;
-	if (row >= ROWS)
+	if (row >= ROWS) {
 		row = 0;
+		// Clock in 1 bit of data
+		PORTC |= _BV(PC0);
+	}
 	tlc_GSData = tlc_data + row * NUM_TLCS * 24;
 	Tlc.update();
+	// The shift register needs 20ns to settle (about 3 clock ticks), but the
+	// above lines are much longer than that
+	PORTC |= _BV(PC5);
 }
 
 // Called just after the data is committed to the output pins
@@ -145,6 +152,9 @@ void generate_lookup() {
 int main(void) {
     generate_lookup();
 	DDRB = 0xFF;
+
+	// Shift register (I actually clobber all of port C)
+	DDRC = 0xFF;
 
 #if defined __AVR_ATmega1280__
 	serial_init();
