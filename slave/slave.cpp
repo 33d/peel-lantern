@@ -49,6 +49,11 @@ uint16_t lookup[256];
 
 volatile uint8_t message_sent = 0;
 
+// Events
+volatile struct {
+	uint8_t updateRow;
+} events;
+
 void updateRow() {
 	static uint8_t row = 0;
 	++row;
@@ -60,7 +65,7 @@ void updateRow() {
 
 // Called just after the data is committed to the output pins
 void tlc_onUpdateFinished() {
-	updateRow();
+	events.updateRow = 1;
 }
 
 void show_data() {
@@ -166,6 +171,10 @@ int main(void) {
 		// Run the serial code here, so interrupts can still run
 		if (message_sent)
 			show_data();
+		if (events.updateRow) {
+			updateRow();
+			events.updateRow = 0;
+		}
 	}
 }
 
