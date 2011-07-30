@@ -56,25 +56,30 @@ namespace Event {
 	static const uint8_t tlc_apply = 0x8;
 };
 
+uint8_t row = 0;
+
 void updateRow() {
-	static uint8_t row = 0;
-	PORTC &= ~_BV(PC5);
 	++row;
-	if (row >= ROWS) {
+	if (row >= ROWS)
 		row = 0;
-		// Clock in 1 bit of data
-		PORTC &= ~_BV(PC0);
-	} else
-		PORTC |= _BV(PC0);
 	tlc_GSData = tlc_data + row * NUM_TLCS * 24;
 	Tlc.update();
-	// The shift register needs 20ns to settle (about 3 clock ticks), but the
-	// above lines are much longer than that
-	PORTC |= _BV(PC5);
 }
 
 // Called just after the data is committed to the output pins
 void tlc_onUpdateFinished() {
+	// Update the shift register ASAP after the XLAT pulse
+	PORTC &= ~_BV(PC5);
+	if (row == 0) {
+		// Clock in 1 bit of data
+		PORTC &= ~_BV(PC0);
+	} else
+		PORTC |= _BV(PC0);
+	// Latch the shift register.  I'll add the nop because the register needs
+	// about 20ns to settle (3 instructions), but changing a port uses 2.
+	__asm__("nop\n\t");
+	PORTC |= _BV(PC5);
+
 	events |= Event::update_row;
 }
 
