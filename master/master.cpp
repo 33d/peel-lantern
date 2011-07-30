@@ -22,7 +22,12 @@
 #else
 #define PEEL_UBRR_VAL ((F_CPU / 16 / PEEL_BAUD) - 1)
 #endif
+
+#if defined __AVR_ATMEGA1280__
 #include "atmega1280.h"
+#else
+#include "atmegax8.h"
+#endif
 
 #define STATUS_LED _BV(5); // arduino 13
 
