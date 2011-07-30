@@ -148,7 +148,7 @@ void generate_lookup() {
 	} while (++i != 0);
 }
 
-int main(void) {
+void main(void) {
     generate_lookup();
 	DDRB = 0xFF;
 
