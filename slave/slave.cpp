@@ -47,12 +47,13 @@ uint16_t lookup[256];
 // mid-range values darker
 #define BRIGHTNESS 3
 
-volatile uint8_t message_sent = 0;
-
 // Events
-volatile struct {
-	uint8_t updateRow;
-} events;
+// Keep the events in a low register, for fast access
+#define events GPIOR0
+namespace Event {
+	static const uint8_t update_row = 0x1;
+	static const uint8_t message_sent = 0x2;
+};
 
 void updateRow() {
 	static uint8_t row = 0;
@@ -72,14 +73,14 @@ void updateRow() {
 
 // Called just after the data is committed to the output pins
 void tlc_onUpdateFinished() {
-	events.updateRow = 1;
+	events |= Event::update_row;
 }
 
 void show_data() {
+	events &= ~Event::message_sent;
 	for (uint8_t i = 0; i < NUM_TLCS * 24; i++)
 		printf("%02x", tlc_data[i]);
 	printf("\n");
-	message_sent = 0;
 }
 
 void show_error(uint8_t error) {
@@ -94,7 +95,7 @@ void blank() {
 }
 
 void apply() {
-	message_sent = 1;
+	events |= Event::message_sent;
 	Tlc.update();
 }
 
@@ -178,14 +179,16 @@ int main(void) {
 	sei();
 
 	while (1) {
-		sleep_mode();
-		// Run the serial code here, so interrupts can still run
-		if (message_sent)
-			show_data();
-		if (events.updateRow) {
-			updateRow();
-			events.updateRow = 0;
+		while (events) {
+			// Run the serial code here, so interrupts can still run
+			if (events & Event::message_sent)
+				show_data();
+			if (events & Event::update_row) {
+				events &= ~Event::update_row;
+				updateRow();
+			}
 		}
+		sleep_mode();
 	}
 }
 
