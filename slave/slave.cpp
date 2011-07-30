@@ -86,7 +86,6 @@ void show_data() {
 void show_error(uint8_t error) {
 	printf("Error %d\n", error);
 	Tlc.set(error + 1, 4095);
-	sei();
 	sleep_mode();
 }
 
