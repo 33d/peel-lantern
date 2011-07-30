@@ -58,13 +58,14 @@ namespace Event {
 
 void updateRow() {
 	static uint8_t row = 0;
-	PORTC = 0;
+	PORTC &= ~_BV(PC5);
 	++row;
 	if (row >= ROWS) {
 		row = 0;
 		// Clock in 1 bit of data
+		PORTC &= ~_BV(PC0);
+	} else
 		PORTC |= _BV(PC0);
-	}
 	tlc_GSData = tlc_data + row * NUM_TLCS * 24;
 	Tlc.update();
 	// The shift register needs 20ns to settle (about 3 clock ticks), but the
