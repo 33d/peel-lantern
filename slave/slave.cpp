@@ -53,6 +53,7 @@ uint16_t lookup[256];
 namespace Event {
 	static const uint8_t update_row = 0x1;
 	static const uint8_t message_sent = 0x2;
+	static const uint8_t tlc_apply = 0x8;
 };
 
 void updateRow() {
@@ -110,11 +111,8 @@ ISR(RX_vect) {
 		} else if (data == 0xFF) {
 			if (state != 0xFF)
 				show_error(1);
-			apply();
-		} else if (data == 0xFE) {
-			if (state != 0xFF)
-				show_error(2);
-			blank();
+			// apply() is fairly slow, don't do it in the interrupt
+			events |= Event::tlc_apply;
 		}
 	} else {
 		// Do we still have more data for this chip?  The bottom 4 bits tell
@@ -185,6 +183,10 @@ int main(void) {
 			if (events & Event::update_row) {
 				events &= ~Event::update_row;
 				updateRow();
+			}
+			if (events & Event::tlc_apply) {
+				events &= ~Event::tlc_apply;
+				apply();
 			}
 		}
 		sleep_mode();
