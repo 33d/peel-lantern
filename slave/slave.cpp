@@ -156,7 +156,6 @@ void generate_lookup() {
 
 int main(void) {
     generate_lookup();
-	DDRB = 0xFF;
 
 	// Shift register (I actually clobber all of port C)
 	DDRC = 0xFF;
@@ -166,8 +165,6 @@ int main(void) {
 #endif
 
 	peel_serial_init();
-
-	PORTB |= STATUS_LED;
 
 	// What's my address?  It's stored in address 0 of the EEPROM.
 	EEAR = 0;
