@@ -28,7 +28,7 @@
 
 #define ROWS 8
 
-volatile uint8_t id;
+uint8_t id;
 
 uint8_t tlc_data[NUM_TLCS * 24 * ROWS];
 // The data that the TLC library uses.  I've removed it from Tlc5940.cpp; this
