@@ -23,7 +23,7 @@
 #define PEEL_UBRR_VAL ((F_CPU / 16 / PEEL_BAUD) - 1)
 #endif
 
-#if defined __AVR_ATMEGA1280__
+#if defined __AVR_ATmega1280__
 #include "atmega1280.h"
 #else
 #include "atmegax8.h"
