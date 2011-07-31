@@ -28,11 +28,6 @@
 
 #define ROWS 8
 
-// 0xFF = idle, 0-(NUM_TLCS*16) = receiving data
-// 0..NUM_TLCS * 16 is the index of the pin being written to.  Since the TLC
-// has 16 outputs, the top 4 bits of this number contain the index of the chip
-// currently being written to.
-volatile uint8_t state = 0xFF;
 volatile uint8_t id;
 
 uint8_t tlc_data[NUM_TLCS * 24 * ROWS];
@@ -106,6 +101,12 @@ void apply() {
 }
 
 ISR(RX_vect) {
+	// 0xFF = idle, 0-(NUM_TLCS*16) = receiving data
+	// 0..NUM_TLCS * 16 is the index of the pin being written to.  Since the TLC
+	// has 16 outputs, the top 4 bits of this number contain the index of the chip
+	// currently being written to.
+	static uint8_t state = 0xFF;
+
 	uint8_t isAddr = UCSRB & _BV(RXB8);
 	uint8_t data = UDR;
 
