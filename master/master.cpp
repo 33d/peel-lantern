@@ -57,17 +57,28 @@ ISR(TIMER1_OVF_vect) {
 	PINB |= STATUS_LED;
 	static uint8_t lit = 0;
 
-	// Enter address mode
-	UCSRB |= _BV(TXB8);
-	// Send the address frame for slave 0
-	send(0);
-	UCSRB &= ~_BV(TXB8);
+	for (uint8_t row = 0; row < 8; row++) {
+		// Enter address mode
+		UCSRB |= _BV(TXB8);
+		// Send the address frame for slave 0
+		send(0);
+		UCSRB &= ~_BV(TXB8);
+		// Send the row we're about to send data for
+		send(row);
 
-	for (uint8_t i = lit; i < lit + 12; i++)
-		send(data[i]);
-	++lit;
-	if (lit >= 24)
-		lit = 0;
+		// Do the fancy animation for the first row
+		if (row == 0) {
+			for (uint8_t i = lit; i < lit + 12; i++)
+				send(data[i]);
+			++lit;
+			if (lit >= 24)
+				lit = 0;
+		} else {
+			// something more dull for the others
+			for (uint8_t i = 0; i < 12; i++)
+				send(i == row ? 0xFF : 0);
+		}
+	}
 }
 
 int main() {

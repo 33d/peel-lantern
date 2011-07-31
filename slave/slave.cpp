@@ -91,40 +91,47 @@ void show_error(uint8_t error) {
 }
 
 ISR(RX_vect) {
-	// 0xFF = idle, 0-(NUM_TLCS*16) = receiving data
+	// 0xFF = idle, 0xFE=waiting for which row to update,
+	// 0-(NUM_TLCS*16) = receiving data
 	// 0..NUM_TLCS * 16 is the index of the pin being written to.  Since the TLC
 	// has 16 outputs, the top 4 bits of this number contain the index of the chip
 	// currently being written to.
 	static uint8_t state = 0xFF;
+	static uint8_t* row_start = tlc_data;
 
 	uint8_t isAddr = UCSRB & _BV(RXB8);
 	uint8_t data = UDR;
 
 	if (isAddr) {
 		if (data == id) {
-			state = TLC_START;
+			state = 0xFE; // wait for the row number
 			// Turn on interrupts for data frames
 			UCSRA &= ~(_BV(MPCM));
 		}
 	} else {
-		// Do we still have more data for this chip?  The bottom 4 bits tell
-		// us the pin for the current chip.
-		if ((state & 0x0F) < TLC_END) {
-			// Be sure to update the correct part of the framebuffer
-			Tlc.set(state++, lookup[data], tlc_data);
-		}
-		if ((state & 0x0F) >= TLC_END) {
-			// Set state to pin 0 of the next chip
-			state = (state & 0xF0) + 16;
-			// Have we run out of chips to write to?
-			if (state >= NUM_TLCS * 16) {
-				// End of data, go back to address mode
-				state = 0xFF;
-				UCSRA |= _BV(MPCM);
-		    } else {
-		    	// go to the next chip
-		    	state += TLC_START;
-		    }
+		if (state == 0xFE) {
+			row_start = tlc_data + (NUM_TLCS * 24 * data);
+			state = TLC_START;
+		} else {
+			// Do we still have more data for this chip?  The bottom 4 bits tell
+			// us the pin for the current chip.
+			if ((state & 0x0F) < TLC_END) {
+				// Be sure to update the correct part of the framebuffer
+				Tlc.set(state++, lookup[data], row_start);
+			}
+			if ((state & 0x0F) >= TLC_END) {
+				// Set state to pin 0 of the next chip
+				state = (state & 0xF0) + 16;
+				// Have we run out of chips to write to?
+				if (state >= NUM_TLCS * 16) {
+					// End of data, go back to address mode
+					state = 0xFF;
+					UCSRA |= _BV(MPCM);
+				} else {
+					// go to the next chip
+					state += TLC_START;
+				}
+			}
 		}
 	}
 }
