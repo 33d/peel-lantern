@@ -63,16 +63,13 @@ void updateRow() {
 // Called just after the data is committed to the output pins
 void tlc_onUpdateFinished() {
 	// Update the shift register ASAP after the XLAT pulse
-	PORTC &= ~_BV(PC5);
-	if (row == 0) {
+	if (row == 0)
 		// Clock in 1 bit of data
-		PORTC &= ~_BV(PC0);
-	} else
-		PORTC |= _BV(PC0);
-	// Latch the shift register.  I'll add the nop because the register needs
-	// about 20ns to settle (3 instructions), but changing a port uses 2.
+		PORTC &= ~_BV(PORTC0);
 	__asm__("nop\n\t");
-	PORTC |= _BV(PC5);
+	PORTC |= _BV(PORTC5);
+	PORTC |= _BV(PORTC0);
+	PORTC &= ~_BV(PORTC5);
 
 	events |= Event::update_row;
 }
