@@ -29,12 +29,13 @@
 #include "atmegax8.h"
 #endif
 
+#define NUM_TLCS 4
+
 #define STATUS_LED _BV(5); // arduino 13
 
 const uint8_t data[] = {
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0x44, 0x88, 0xBB, 0xFF, 0xBB, 0x88, 0x44, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0xFF, 0xCC, 0x88, 0x44, 0, 0x44, 0x88, 0xCC, 0xFF,
+		0xFF, 0xCC, 0x88, 0x44, 0, 0x44, 0x88, 0xCC, 0xFF,
 };
 
 void die(char* label, uint8_t status) {
@@ -68,15 +69,17 @@ ISR(TIMER1_OVF_vect) {
 
 		// Do the fancy animation for the first row
 		if (row == 0) {
-			for (uint8_t i = lit; i < lit + 12; i++)
-				send(data[i]);
+			for (uint8_t chip = 0; chip < NUM_TLCS; chip++)
+				for (uint8_t i = lit; i < lit + 8; i++)
+					send(data[i]);
 			++lit;
-			if (lit >= 24)
+			if (lit >= 8)
 				lit = 0;
 		} else {
 			// something more dull for the others
-			for (uint8_t i = 0; i < 12; i++)
-				send(i == row ? 0xFF : 0);
+			for (uint8_t chip = 0; chip < NUM_TLCS; chip++)
+				for (uint8_t i = 0; i < 12; i++)
+					send(i == row ? 0xFF : 0);
 		}
 	}
 }
