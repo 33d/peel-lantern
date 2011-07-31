@@ -59,8 +59,6 @@ ISR(TIMER1_OVF_vect) {
 
 	// Enter address mode
 	UCSRB |= _BV(TXB8);
-	// Send a blank first, to confirm that it works
-	send(0xFE);
 	// Send the address frame for slave 0
 	send(0);
 	UCSRB &= ~_BV(TXB8);
@@ -70,11 +68,6 @@ ISR(TIMER1_OVF_vect) {
 	++lit;
 	if (lit >= 24)
 		lit = 0;
-
-	// Send the apply frame
-	UCSRB |= _BV(TXB8);
-	send(0xFF);
-	UCSRB &= ~_BV(TXB8);
 }
 
 int main() {
