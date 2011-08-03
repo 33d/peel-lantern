@@ -42,6 +42,18 @@ uint16_t lookup[256];
 // mid-range values darker
 #define BRIGHTNESS 3
 
+// The mapping from physical rows to their memory locations
+uint8_t* const rows[] = {
+		tlc_data + 3 * NUM_TLCS * 24,
+		tlc_data + 2 * NUM_TLCS * 24,
+		tlc_data + 1 * NUM_TLCS * 24,
+		tlc_data + 0 * NUM_TLCS * 24,
+		tlc_data + 7 * NUM_TLCS * 24,
+		tlc_data + 6 * NUM_TLCS * 24,
+		tlc_data + 5 * NUM_TLCS * 24,
+		tlc_data + 4 * NUM_TLCS * 24,
+};
+
 // Events
 // Keep the events in a low register, for fast access
 #define events GPIOR0
@@ -56,7 +68,7 @@ void updateRow() {
 	++row;
 	if (row >= ROWS)
 		row = 0;
-	tlc_GSData = tlc_data + row * NUM_TLCS * 24;
+	tlc_GSData = rows[row];
 	Tlc.update();
 }
 
