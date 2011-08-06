@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include <inttypes.h>
 #include <avr/pgmspace.h>
+#include "patterns.h"
 
 // Settings for the computer-side serial port
 #define SERIAL_BAUD 500000
@@ -33,6 +34,21 @@
 
 #define STATUS_LED _BV(5); // arduino 13
 
+uint8_t fading_pattern(uint8_t, uint8_t, uint8_t, uint8_t);
+uint8_t diagonal_pattern(uint8_t, uint8_t, uint8_t, uint8_t);
+
+const patternHandler pattern_handlers[] = {
+		fading_pattern,
+		diagonal_pattern,
+		diagonal_pattern,
+		diagonal_pattern,
+		diagonal_pattern,
+		diagonal_pattern,
+		diagonal_pattern,
+		diagonal_pattern,
+		diagonal_pattern,
+};
+
 const uint8_t data[] = {
 		0xFF, 0xCC, 0x88, 0x44, 0, 0x44, 0x88, 0xCC,
 		0xFF, 0xCC, 0x88, 0x44, 0, 0x44, 0x88, 0xCC,
@@ -55,37 +71,63 @@ void send(uint8_t c) {
 }
 
 ISR(TIMER1_OVF_vect) {
-	PINB |= STATUS_LED;
-	static uint8_t lit = 0;
+	static uint8_t current_pattern_id = 0;
+	static patternHandler current_pattern_handler;
 
-	for (uint8_t row = 0; row < 8; row++) {
-		// Enter address mode
-		UCSRB |= _BV(TXB8);
-		// Send the address frame for slave 0
-		send(0);
-		UCSRB &= ~_BV(TXB8);
-		// Send the row we're about to send data for
-		send(row);
+	// Has the pattern changed?  This will be run on the first call, because
+	// PINC won't be 0 (unless you fill it with ground wires)
+	uint8_t pattern_id = PINC;
+	if (pattern_id != current_pattern_id) {
+		current_pattern_id = pattern_id;
+		uint8_t id = 8;
+		for (; pattern_id & 0x80; --id)
+			pattern_id <<= 1;
+		current_pattern_handler = pattern_handlers[id];
+	}
 
-		// Do the fancy animation for the first row
-		if (row == 0) {
-			for (uint8_t chip = 0; chip < NUM_TLCS; chip++)
-				for (uint8_t i = lit; i < lit + 8; i++)
-					send(data[i]);
-			++lit;
-			if (lit >= 8)
-				lit = 0;
-		} else {
-			// something more dull for the others
-			for (uint8_t chip = 0; chip < NUM_TLCS; chip++)
-				for (uint8_t i = 0; i < 12; i++)
-					send(i == row ? 0xFF : 0);
+	for (uint8_t c = 0; c < 8; c++) {
+		for (uint8_t row = 0; row < 8; row++) {
+			// Address mode on
+			UCSRB |= _BV(TXB8);
+			// Send the address frame for the right slave
+			send(c);
+			// Address mode off
+			UCSRB &= ~_BV(TXB8);
+			// followed by the row
+			send(row);
+
+			for (uint8_t col = 0; col < NUM_TLCS * 4; col++) {
+				for (uint8_t color = 0; color < 3; color++)
+					send(current_pattern_handler(c, color, col, row));
+			}
 		}
 	}
 }
 
+uint8_t fading_pattern(uint8_t c, uint8_t color, uint8_t col, uint8_t row) {
+	static uint8_t lit = 0;
+
+	if (c == 0 && col == 0 && row == 0)
+		lit = (lit + 1) & 0x07;
+
+	// Only show for blue
+	if (color == 0) {
+		return data[(col & 0x07) + lit];
+	} else
+		return 0;
+}
+
+uint8_t diagonal_pattern(uint8_t c, uint8_t color, uint8_t col, uint8_t row) {
+	return col - color == row ? 0xFF : 0;
+}
+
 int main() {
 	DDRB = 0xFF;
+
+	// Port C selects the pattern
+	DDRC = 0;
+	// Pull-ups on
+	PORTC = 0xFF;
 
 	peel_serial_init();
 
