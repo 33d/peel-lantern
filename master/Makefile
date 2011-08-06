@@ -1,7 +1,7 @@
 PROJECT	       = master
 
 PRG            = $(PROJECT)
-OBJECTS        = 
+OBJECTS        = patterns
 AVR_OBJECTS    = $(PROJECT)  serial framebuffer
 TEST_OBJECTS   = 
 
