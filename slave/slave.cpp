@@ -119,7 +119,7 @@ ISR(RX_vect) {
 		}
 	} else {
 		if (state == 0xFE) {
-			row_start = tlc_data + (NUM_TLCS * 24 * data);
+			row_start = rows[data];
 			state = TLC_START;
 		} else {
 			// Do we still have more data for this chip?  The bottom 4 bits tell
