@@ -34,6 +34,8 @@
 
 #define STATUS_LED _BV(5); // arduino 13
 
+patternHandler current_pattern_handler = pattern_handlers[0];
+
 void die(char* label, uint8_t status) {
 	cli();
 	PORTB |= STATUS_LED;
@@ -50,21 +52,22 @@ void send(uint8_t c) {
 	while (!(UCSRA & _BV(UDRE)));
 }
 
-ISR(TIMER1_OVF_vect) {
+void update_pattern() {
 	static uint8_t current_pattern_id = 0;
-	static patternHandler current_pattern_handler;
 
-	// Has the pattern changed?  This will be run on the first call, because
-	// PINC won't be 0 (unless you fill it with ground wires)
 	uint8_t pattern_id = PATTERN_PIN;
-	if (pattern_id != current_pattern_id) {
-		current_pattern_id = pattern_id;
-		uint8_t id = 8;
-		for (; pattern_id & 0x80; --id)
-			pattern_id <<= 1;
-		current_pattern_handler = pattern_handlers[id];
-	}
+	current_pattern_id = pattern_id;
+	uint8_t id = 8;
+	for (; pattern_id & 0x80; --id)
+		pattern_id <<= 1;
+	current_pattern_handler = pattern_handlers[id];
+}
 
+ISR(PATTERN_PIN_PCINT_vect) {
+	update_pattern();
+}
+
+ISR(TIMER1_OVF_vect) {
 	for (uint8_t c = 0; c < 8; c++) {
 		for (uint8_t row = 0; row < 8; row++) {
 			// Address mode on
@@ -87,12 +90,8 @@ ISR(TIMER1_OVF_vect) {
 int main() {
 	DDRB = 0xFF;
 
-	// Port C selects the pattern
-	PATTERN_DDR = 0;
-	// Pull-ups on
-	PATTERN_PORT = 0xFF;
-
 	peel_serial_init();
+	pattern_select_init();
 
 	OCR1A = F_CPU / 1024 / 12;
 
@@ -116,6 +115,8 @@ int main() {
 #if defined __AVR_ATmega1280__
 	serial_init();
 #endif
+
+	update_pattern();
 
 	puts("Ready");
 

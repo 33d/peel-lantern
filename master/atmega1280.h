@@ -12,9 +12,8 @@
 #define TXB8 TXB81
 #define UDRE UDRE1
 
-#define PATTERN_DDR DDRK
 #define PATTERN_PIN PINK
-#define PATTERN_PORT PORTK
+#define PATTERN_PIN_PCINT_vect PCINT2_vect
 
 #if !defined(PEEL_BAUD)
 #error Define PEEL_BAUD first
@@ -40,6 +39,18 @@ void peel_serial_init() {
 	    | _BV(U2X1)
 	#endif
 	  ;
+}
+
+void pattern_select_init() {
+	// Port K selects the pattern
+	DDRK = 0;
+	// Pull-ups on
+	PORTK = 0xFF;
+
+	// Enable PCINT16-23
+	PCICR |= _BV(PCIE2);
+	// Generate an interrupt on all pins
+	PCMSK2 = 0xFF;
 }
 
 #endif
