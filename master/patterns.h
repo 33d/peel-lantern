@@ -10,7 +10,7 @@ uint8_t fading_vertical_pattern(uint8_t, uint8_t, uint8_t, uint8_t);
 uint8_t diagonal_pattern(uint8_t, uint8_t, uint8_t, uint8_t);
 
 const patternHandler pattern_handlers[] = {
-		diagonal_pattern, // Pattern shown when port B is disconnected
+		0, // get the data from the serial port
 		diagonal_pattern, // Unavailable on Arduinos
 		diagonal_pattern, // Unavailable on Arduinos
 		fading_pattern,

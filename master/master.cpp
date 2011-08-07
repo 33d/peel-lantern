@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include <inttypes.h>
 #include <avr/pgmspace.h>
+#include "circularbuffer.h"
 #include "patterns.h"
 
 // Settings for the computer-side serial port
@@ -32,7 +33,14 @@
 
 #define NUM_TLCS 4
 
+// 1024x prescaling for the pattern timer
+#define PATTERN_CS (_BV(CS12) | _BV(CS10))
+
 #define STATUS_LED _BV(5); // arduino 13
+
+// the serial port receive buffer
+CircularBuffer<uint8_t, 32> rx_buf;
+bool rx_is_paused = false;
 
 patternHandler current_pattern_handler = pattern_handlers[0];
 
@@ -55,16 +63,45 @@ void send(uint8_t c) {
 void update_pattern() {
 	static uint8_t current_pattern_id = 0;
 
+	// Turn the timer off, to stop the timer interrupt trying to invoke the
+	// 0 pointer in the pattern array
+	TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
+
 	uint8_t pattern_id = PATTERN_PIN;
 	current_pattern_id = pattern_id;
 	uint8_t id = 8;
 	for (; pattern_id & 0x80; --id)
 		pattern_id <<= 1;
 	current_pattern_handler = pattern_handlers[id];
+
+	// Start the timer again if we're in test pattern mode
+	if (current_pattern_handler != 0)
+		TCCR1B |= PATTERN_CS;
 }
 
 ISR(PATTERN_PIN_PCINT_vect) {
 	update_pattern();
+}
+
+void handle_data(uint8_t data) {
+	static uint8_t row = 0xFE;
+	static uint8_t col = 0xFE;
+
+	if (col > NUM_TLCS * 12 * 2) {
+		row = (row + 1) & 0x1F;
+		// Initialize the new row
+		// Address mode on
+		UCSRB |= _BV(TXB8);
+		// Send the address frame for the right slave
+		send(((row >> 2) & 0xFE) + (row >= NUM_TLCS * 12 ? 1 : 0));
+		// Address mode off
+		UCSRB &= ~_BV(TXB8);
+		// followed by the row
+		send(row & 8);
+	}
+
+	send(data);
+	++col;
 }
 
 ISR(TIMER1_OVF_vect) {
@@ -87,6 +124,15 @@ ISR(TIMER1_OVF_vect) {
 	}
 }
 
+ISR(USART0_RX_vect) {
+	rx_buf.pushBack(UDR0);
+	// is the buffer filling up?
+	if (!rx_is_paused && rx_buf.size() > rx_buf.capacity() - 8) {
+		rx_is_paused = true;
+		UDR0 = 19; // XOFF
+	}
+}
+
 int main() {
 	DDRB = 0xFF;
 
@@ -97,7 +143,7 @@ int main() {
 
 	TCCR1A = _BV(WGM11) | _BV(WGM10); // Fast PWM, reset at OCR1A
 	TCCR1B = _BV(WGM13) | _BV(WGM12) // Fast PWM
-					| _BV(CS12) | _BV(CS10); // 1024x prescaling
+					| PATTERN_CS;
 	TIMSK1 = _BV(TOIE1); // Interrupt on overflow (=OCR1A)
 
 	// Initialize UART0, which talks to the computer.  Set everything but
@@ -122,7 +168,16 @@ int main() {
 
 	sei();
 
-	while (1)
+	while (1) {
+		while (rx_buf.size()) {
+			handle_data(rx_buf.popFront());
+			// can we continue to send data?
+			if (rx_is_paused && rx_buf.size() < 4) {
+				rx_is_paused = false;
+				UDR0 = 17; // XON
+			}
+		}
 		sleep_mode();
+	}
 }
 
