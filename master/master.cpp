@@ -56,7 +56,7 @@ ISR(TIMER1_OVF_vect) {
 
 	// Has the pattern changed?  This will be run on the first call, because
 	// PINC won't be 0 (unless you fill it with ground wires)
-	uint8_t pattern_id = PINC;
+	uint8_t pattern_id = PATTERN_PIN;
 	if (pattern_id != current_pattern_id) {
 		current_pattern_id = pattern_id;
 		uint8_t id = 8;
@@ -88,9 +88,9 @@ int main() {
 	DDRB = 0xFF;
 
 	// Port C selects the pattern
-	DDRC = 0;
+	PATTERN_DDR = 0;
 	// Pull-ups on
-	PORTC = 0xFF;
+	PATTERN_PORT = 0xFF;
 
 	peel_serial_init();
 

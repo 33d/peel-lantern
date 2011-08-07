@@ -10,6 +10,10 @@
 #define UDRE UDRE0
 #define TXB8 TXB80
 
+#define PATTERN_DDR DDRC
+#define PATTERN_PIN PINC
+#define PATTERN_PORT PORTC
+
 #if !defined(PEEL_BAUD)
 #error Define PEEL_BAUD first
 #endif
