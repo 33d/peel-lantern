@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
+/**
+ * A circular buffer.  It does no bounds checking.  For better performance,
+ * SIZE should be a power of 2, so the compiler can perform modulo
+ * instructions using a logical AND.
+ */
 template <class T, uint8_t SIZE>
 class CircularBuffer {
 public:
