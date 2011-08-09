@@ -40,9 +40,18 @@
 
 // the serial port receive buffer
 CircularBuffer<uint8_t, 32> rx_buf;
-bool rx_is_paused = false;
 
 patternHandler current_pattern_handler = pattern_handlers[0];
+
+#define event GPIOR0
+namespace Event {
+	const uint8_t send_xoff = 1;
+}
+
+#define flags GPIOR1
+namespace Flags {
+	const uint8_t rx_paused = 1;
+}
 
 void die(char* label, uint8_t status) {
 	cli();
@@ -127,9 +136,9 @@ ISR(TIMER1_OVF_vect) {
 ISR(USART0_RX_vect) {
 	rx_buf.pushBack(UDR0);
 	// is the buffer filling up?
-	if (!rx_is_paused && rx_buf.size() > rx_buf.capacity() - 8) {
-		rx_is_paused = true;
-		UDR0 = 19; // XOFF
+	if (!(flags |= Flags::rx_paused) && rx_buf.size() > rx_buf.capacity() - 8) {
+		event |= Event::send_xoff;
+		flags |= Flags::rx_paused;
 	}
 }
 
@@ -174,10 +183,15 @@ int main() {
 		while (rx_buf.size()) {
 			handle_data(rx_buf.popFront());
 			// can we continue to send data?
-			if (rx_is_paused && rx_buf.size() < 4) {
-				rx_is_paused = false;
-				UDR0 = 17; // XON
+			if ((flags & Flags::rx_paused) && rx_buf.size() < 4) {
+				flags &= ~Flags::rx_paused;
+				send(17); // XON
 			}
+		}
+		if (event & Event::send_xoff) {
+			send(19); // XOFF
+			flags |= Flags::rx_paused;
+			event &= ~Event::send_xoff;
 		}
 		sleep_mode();
 	}
