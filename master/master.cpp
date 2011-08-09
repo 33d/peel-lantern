@@ -151,6 +151,8 @@ int main() {
 	// do that.
 	UBRR0H = (uint8_t) (UBRR_VAL >> 8);
 	UBRR0L = (uint8_t) (UBRR_VAL);
+	// Enable TX, RX and interrupt on RX.
+	UCSR0B = _BV(TXEN0) | _BV(RXEN0) | _BV(RXCIE0);
 	// Asynchronous, no parity, 1 stop bit, 8 data bits
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
 #if defined(SERIAL_U2X)
