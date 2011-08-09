@@ -88,16 +88,16 @@ void handle_data(uint8_t data) {
 	static uint8_t col = 0xFE;
 
 	if (col > NUM_TLCS * 12 * 2) {
-		row = (row + 1) & 0x1F;
+		row = (row + 1) % 32;
 		// Initialize the new row
 		// Address mode on
 		UCSRB |= _BV(TXB8);
 		// Send the address frame for the right slave
-		send(((row >> 2) & 0xFE) + (row >= NUM_TLCS * 12 ? 1 : 0));
+		send(((row / 4) & 0xFE) + (row >= NUM_TLCS * 12 ? 1 : 0));
 		// Address mode off
 		UCSRB &= ~_BV(TXB8);
 		// followed by the row
-		send(row & 8);
+		send(row % 8);
 	}
 
 	send(data);
