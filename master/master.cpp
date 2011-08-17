@@ -92,20 +92,28 @@ ISR(PATTERN_PIN_PCINT_vect) {
 	update_pattern();
 }
 
-void handle_data(uint8_t data) {
-	static uint8_t row = 0xFE;
-	static uint8_t col = 0xFE;
+void send_addr(uint8_t addr) {
+	// Address mode on
+	UCSRB |= _BV(TXB8);
+	// Send the address frame for the right slave
+	send(addr);
+	// Address mode off
+	UCSRB &= ~_BV(TXB8);
+}
 
-	if (col > NUM_TLCS * 12 * 2) {
+void handle_data(uint8_t data) {
+	static uint8_t row = 0xFF;
+	static uint8_t col = 0xFF;
+
+	if (col >= NUM_TLCS * 12 * 2) {
+		// End of a row, go to the next one
 		row = (row + 1) % 32;
-		// Initialize the new row
-		// Address mode on
-		UCSRB |= _BV(TXB8);
-		// Send the address frame for the right slave
-		send(((row / 4) & 0xFE) + (row >= NUM_TLCS * 12 ? 1 : 0));
-		// Address mode off
-		UCSRB &= ~_BV(TXB8);
-		// followed by the row
+		send_addr(row / 8 * 2);
+		send(row % 8);
+		col = 0;
+	} else if (col == NUM_TLCS * 12) {
+		// Half row
+		send_addr(row / 8 * 2 + 1);
 		send(row % 8);
 	}
 
