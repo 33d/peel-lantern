@@ -79,9 +79,9 @@ void tlc_onUpdateFinished() {
 		// Clock in 1 bit of data
 		PORTC &= ~_BV(PORTC0);
 	__asm__("nop\n\t");
-	PORTC |= _BV(PORTC5);
+	PORTC |= _BV(PORTC3);
 	PORTC |= _BV(PORTC0);
-	PORTC &= ~_BV(PORTC5);
+	PORTC &= ~_BV(PORTC3);
 
 	events |= Event::update_row;
 }
