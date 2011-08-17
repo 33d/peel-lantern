@@ -96,7 +96,8 @@ void show_data() {
 void show_error(uint8_t error) {
 	printf("Error %d\n", error);
 	Tlc.set(error + 1, 4095);
-	sleep_mode();
+	// Turn off all interrupts except the one for BLANK and GSCLK
+	UCSRB |= ~_BV(4);
 }
 
 ISR(RX_vect) {
@@ -112,6 +113,11 @@ ISR(RX_vect) {
 	uint8_t data = UDR;
 
 	if (isAddr) {
+		// Check the state - whinge if we don't have enough data for a row
+		if (state != 0xFF) {
+			show_error(1);
+			return;
+		}
 		if (data == id) {
 			state = 0xFE; // wait for the row number
 			// Turn on interrupts for data frames
