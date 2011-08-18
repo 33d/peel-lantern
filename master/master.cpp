@@ -27,8 +27,10 @@
 
 #if defined __AVR_ATmega1280__
 #include "atmega1280.h"
+#define STATUS_LED _BV(7); // arduino 13
 #else
 #include "atmegax8.h"
+#define STATUS_LED _BV(5); // arduino 13
 #endif
 
 #define NUM_TLCS 4
@@ -36,7 +38,6 @@
 // 1024x prescaling for the pattern timer
 #define PATTERN_CS (_BV(CS12) | _BV(CS10))
 
-#define STATUS_LED _BV(5); // arduino 13
 
 // the serial port receive buffer
 CircularBuffer<uint8_t, 32> rx_buf;
@@ -107,7 +108,12 @@ void handle_data(uint8_t data) {
 
 	if (col >= NUM_TLCS * 12 * 2) {
 		// End of a row, go to the next one
-		row = (row + 1) % 32;
+		row = row + 1;
+		// Toggle the LED at the end of a frame
+		if (row >= 32) {
+			PINB |= STATUS_LED;
+			row = 0;
+		}
 		send_addr(row / 8 * 2);
 		send(row % 8);
 		col = 0;
