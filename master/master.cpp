@@ -128,6 +128,10 @@ void handle_data(uint8_t data) {
 }
 
 ISR(TIMER1_OVF_vect) {
+	// make sure the handler doesn't change during this routine... especially
+	// if it changes to 0!
+	patternHandler handler = current_pattern_handler;
+
 	for (uint8_t c = 0; c < 8; c++) {
 		for (uint8_t row = 0; row < 8; row++) {
 			// Address mode on
@@ -141,7 +145,7 @@ ISR(TIMER1_OVF_vect) {
 
 			for (uint8_t col = 0; col < NUM_TLCS * 4; col++) {
 				for (uint8_t color = 0; color < 3; color++)
-					send(current_pattern_handler(c, color, col, row));
+					send(handler(c, color, col, row));
 			}
 		}
 	}
