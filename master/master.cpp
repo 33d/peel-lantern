@@ -8,7 +8,8 @@
 #include "patterns.h"
 
 // Settings for the computer-side serial port
-#define SERIAL_BAUD 500000
+#define SERIAL_BAUD 115200
+#define SERIAL_U2X
 #if defined(SERIAL_U2X)
 #define UBRR_VAL ((F_CPU / 8 / SERIAL_BAUD) - 1)
 #else
