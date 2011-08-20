@@ -226,11 +226,11 @@ int main() {
 			// can we continue to send data?
 			if ((flags & Flags::rx_paused) && rx_buf.size() < 4) {
 				flags &= ~Flags::rx_paused;
-				send(17); // XON
+				putc(17, stdout); // XON
 			}
 		}
 		if (event & Event::send_xoff) {
-			send(19); // XOFF
+			putc(19, stdout); // XOFF
 			flags |= Flags::rx_paused;
 			event &= ~Event::send_xoff;
 		}
