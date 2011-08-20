@@ -47,6 +47,7 @@ patternHandler current_pattern_handler = pattern_handlers[0];
 #define event GPIOR0
 namespace Event {
 	const uint8_t send_xoff = 1;
+	const uint8_t update_test_pattern_frame = 2;
 }
 
 #define flags GPIOR1
@@ -128,9 +129,15 @@ void handle_data(uint8_t data) {
 }
 
 ISR(TIMER1_OVF_vect) {
+	event |= Event::update_test_pattern_frame;
+}
+
+void update_test_pattern() {
 	// make sure the handler doesn't change during this routine... especially
 	// if it changes to 0!
 	patternHandler handler = current_pattern_handler;
+	if (handler == 0)
+		return;
 
 	for (uint8_t c = 0; c < 8; c++) {
 		for (uint8_t row = 0; row < 8; row++) {
@@ -211,6 +218,11 @@ int main() {
 			flags |= Flags::rx_paused;
 			event &= ~Event::send_xoff;
 		}
+		if (event & Event::update_test_pattern_frame) {
+			update_test_pattern();
+			event &= ~Event::update_test_pattern_frame;
+		}
+
 		sleep_mode();
 	}
 }
