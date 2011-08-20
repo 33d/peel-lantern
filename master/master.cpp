@@ -55,6 +55,13 @@ namespace Flags {
 	const uint8_t rx_paused = 1;
 }
 
+// The coordinates to update next
+struct Pos {
+	uint8_t row, col;
+	Pos() { reset(); }
+	void reset() { this->row = 0xFF; this->col = 0xFF; }
+} pos;
+
 void die(char* label, uint8_t status) {
 	cli();
 	PORTB |= STATUS_LED;
@@ -104,40 +111,43 @@ void send_addr(uint8_t addr) {
 }
 
 void handle_data(uint8_t data) {
-	static uint8_t row = 0xFF;
-	static uint8_t col = 0xFF;
-
-	if (col >= NUM_TLCS * 12 * 2) {
+	PORTB &= ~STATUS_LED;
+	if (pos.col >= NUM_TLCS * 12 * 2) {
 		// End of a row, go to the next one
-		row = row + 1;
+		++(pos.row);
 		// Toggle the LED at the end of a frame
-		if (row >= 32) {
-			PINB |= STATUS_LED;
-			row = 0;
+		if (pos.row >= 32) {
+			pos.row = 0;
 		}
-		send_addr(row / 8 * 2);
-		send(row % 8);
-		col = 0;
-	} else if (col == NUM_TLCS * 12) {
+		send_addr(pos.row / 8 * 2);
+		send(pos.row % 8);
+		pos.col = 0;
+	} else if (pos.col == NUM_TLCS * 12) {
 		// Half row
-		send_addr(row / 8 * 2 + 1);
-		send(row % 8);
+		send_addr(pos.row / 8 * 2 + 1);
+		send(pos.row % 8);
 	}
 
 	send(data);
-	++col;
+	++(pos.col);
 }
 
 ISR(TIMER1_OVF_vect) {
 	event |= Event::update_test_pattern_frame;
+	// We haven't received any data for a while; reset the pattern coordinates
+	pos.reset();
 }
 
 void update_test_pattern() {
 	// make sure the handler doesn't change during this routine... especially
 	// if it changes to 0!
 	patternHandler handler = current_pattern_handler;
-	if (handler == 0)
+	if (handler == 0) {
+		// timer off
+		TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
+		PORTB |= STATUS_LED;
 		return;
+	}
 
 	for (uint8_t c = 0; c < 8; c++) {
 		for (uint8_t row = 0; row < 8; row++) {
@@ -165,6 +175,11 @@ ISR(USART0_RX_vect) {
 		event |= Event::send_xoff;
 		flags |= Flags::rx_paused;
 	}
+
+	// Reset the timer.  If we don't get any more data before the timer is
+	// up, reset the coordinates.
+	TCNT1 = 0;
+	TCCR1B |= PATTERN_CS;
 }
 
 int main() {
@@ -173,7 +188,7 @@ int main() {
 	peel_serial_init();
 	pattern_select_init();
 
-	OCR1A = F_CPU / 1024 / 12;
+	OCR1A = F_CPU / 1024 / 4;
 
 	TCCR1A = _BV(WGM11) | _BV(WGM10); // Fast PWM, reset at OCR1A
 	TCCR1B = _BV(WGM13) | _BV(WGM12) // Fast PWM
