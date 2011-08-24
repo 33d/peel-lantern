@@ -172,7 +172,7 @@ void update_test_pattern() {
 ISR(USART0_RX_vect) {
 	rx_buf.pushBack(UDR0);
 	// is the buffer filling up?
-	if (!(flags |= Flags::rx_paused) && rx_buf.size() > rx_buf.capacity() - 8) {
+	if (!(flags & Flags::rx_paused) && rx_buf.size() > rx_buf.capacity() - 8) {
 		event |= Event::send_xoff;
 		flags |= Flags::rx_paused;
 	}
