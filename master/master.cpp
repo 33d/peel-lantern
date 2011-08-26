@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include <inttypes.h>
 #include <avr/pgmspace.h>
+#include <util/delay.h>
 #include "circularbuffer.h"
 #include "patterns.h"
 
@@ -64,8 +65,15 @@ struct Pos {
 
 void die(char* label, uint8_t status) {
 	cli();
-	PORTB |= STATUS_LED;
-	sleep_cpu();
+	while(true) {
+		for (uint8_t i = 0; i < status; i++) {
+			PORTB |= STATUS_LED;
+			_delay_ms(20);
+			PORTB &= ~STATUS_LED;
+			_delay_ms(100);
+		}
+		_delay_ms(600);
+	}
 }
 
 void send(uint8_t c) {
@@ -169,6 +177,12 @@ void update_test_pattern() {
 }
 
 ISR(USART0_RX_vect) {
+	// Check for hardware overflow
+	if (UCSR0A | DOR0)
+		die(0, 2);
+	// Check for software overflow
+	if (rx_buf.size() >= rx_buf.capacity())
+		die(0, 3);
 	rx_buf.pushBack(UDR0);
 	// is the buffer filling up?
 	if (!(flags & Flags::rx_paused) && rx_buf.size() > rx_buf.capacity() - 8) {
