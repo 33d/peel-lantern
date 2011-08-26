@@ -41,7 +41,7 @@
 
 
 // the serial port receive buffer
-CircularBuffer<uint8_t, 32> rx_buf;
+CircularBuffer<uint8_t, 64> rx_buf;
 
 patternHandler current_pattern_handler = pattern_handlers[0];
 
@@ -178,14 +178,14 @@ void update_test_pattern() {
 
 ISR(USART0_RX_vect) {
 	// Check for hardware overflow
-	if (UCSR0A | DOR0)
+	if (UCSR0A & _BV(DOR0))
 		die(0, 2);
 	// Check for software overflow
-	if (rx_buf.size() >= rx_buf.capacity())
+	if (rx_buf.size() >= rx_buf.capacity() - 8)
 		die(0, 3);
 	rx_buf.pushBack(UDR0);
 	// is the buffer filling up?
-	if (!(flags & Flags::rx_paused) && rx_buf.size() > rx_buf.capacity() - 8) {
+	if (!(flags & Flags::rx_paused) && rx_buf.size() > rx_buf.capacity() - 32) {
 		event |= Event::send_xoff;
 		flags |= Flags::rx_paused;
 	}
