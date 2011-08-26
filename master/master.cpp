@@ -204,7 +204,7 @@ int main() {
 	peel_serial_init();
 	pattern_select_init();
 
-	OCR1A = F_CPU / 1024 / 4;
+	OCR1A = F_CPU / 1024 / 12;
 
 	TCCR1A = _BV(WGM11) | _BV(WGM10); // Fast PWM, reset at OCR1A
 	TCCR1B = _BV(WGM13) | _BV(WGM12) // Fast PWM
