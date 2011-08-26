@@ -29,9 +29,11 @@
 #if defined __AVR_ATmega1280__
 #include "atmega1280.h"
 #define STATUS_LED _BV(7); // arduino 13
+#define CTS _BV(6) // arduino 12
 #else
 #include "atmegax8.h"
 #define STATUS_LED _BV(5); // arduino 13
+#define CTS _BV(4) // arduino 12
 #endif
 
 #define NUM_TLCS 4
@@ -47,7 +49,6 @@ patternHandler current_pattern_handler = pattern_handlers[0];
 
 #define event GPIOR0
 namespace Event {
-	const uint8_t send_xoff = 1;
 	const uint8_t update_test_pattern_frame = 2;
 }
 
@@ -186,7 +187,7 @@ ISR(USART0_RX_vect) {
 	rx_buf.pushBack(UDR0);
 	// is the buffer filling up?
 	if (!(flags & Flags::rx_paused) && rx_buf.size() > rx_buf.capacity() - 32) {
-		event |= Event::send_xoff;
+		PORTB |= CTS; // Tell the computer to stop sending data
 		flags |= Flags::rx_paused;
 	}
 
@@ -197,6 +198,7 @@ ISR(USART0_RX_vect) {
 }
 
 int main() {
+	// status led and CTS
 	DDRB = 0xFF;
 
 	peel_serial_init();
@@ -233,19 +235,16 @@ int main() {
 
 	sei();
 
+	PORTB &= ~CTS; // Ready for data
+
 	while (1) {
 		while (rx_buf.size()) {
 			handle_data(rx_buf.popFront());
 			// can we continue to send data?
 			if ((flags & Flags::rx_paused) && rx_buf.size() < 4) {
 				flags &= ~Flags::rx_paused;
-				putc(17, stdout); // XON
+				PORTB &= ~CTS; // Tell the computer to continue sending data
 			}
-		}
-		if (event & Event::send_xoff) {
-			putc(19, stdout); // XOFF
-			flags |= Flags::rx_paused;
-			event &= ~Event::send_xoff;
 		}
 		if (event & Event::update_test_pattern_frame) {
 			update_test_pattern();
