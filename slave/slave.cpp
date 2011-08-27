@@ -184,8 +184,8 @@ int main(void) {
 	// Start the TLC on a fairly dark colour
 	Tlc.init(0xFF);
 	// Light up some of the first row, to show the chip ID
-	for (uint8_t i = 0; i < id*3; i += 3)
-		tlc_data[i] = 0xFF;
+	for (uint8_t i = 0; i < id*3; i++)
+		tlc_data[i] = (i % 3 == 2) ? 0xFF : 0;
 
 	sei();
 
