@@ -66,6 +66,7 @@ struct Pos {
 
 void die(char* label, uint8_t status) {
 	cli();
+	printf("Error:%d\n", status);
 	while(true) {
 		for (uint8_t i = 0; i < status; i++) {
 			PORTB |= STATUS_LED;
