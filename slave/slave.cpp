@@ -81,7 +81,7 @@ void show_data() {
 
 void die(uint8_t status) {
 	cli();
-	for (uint8_t i = 0; i < 10; i++) {
+	for (uint8_t j = 0; j < 10; j++) {
 		for (uint8_t i = 0; i < status; i++) {
 			PORTB |= STATUS_LED;
 			_delay_ms(20);
