@@ -119,16 +119,16 @@ ISR(RX_vect) {
 			die(6);
 			return;
 		}
-		if (data == id) {
-			state = 0xFE; // wait for the row number
+		// The low 4 bits contain the chip ID... is this us?
+		if (data & 0x0F == id) {
+			// The row number is in bits 4-6
+			uint8_t row_num = (data >> 4) & 0x07;
+			row_start = tlc_data + (NUM_TLCS * 24 * row_num);
+			state = TLC_START;
 			// Turn on interrupts for data frames
 			UCSRA &= ~(_BV(MPCM));
 		}
 	} else {
-		if (state == 0xFE) {
-			row_start = tlc_data + (NUM_TLCS * 24 * data);
-			state = TLC_START;
-		} else {
 			// Do we still have more data for this chip?  The bottom 4 bits tell
 			// us the pin for the current chip.
 			if ((state & 0x0F) < TLC_END) {
@@ -148,7 +148,6 @@ ISR(RX_vect) {
 					state += TLC_START;
 				}
 			}
-		}
 	}
 }
 
