@@ -104,7 +104,7 @@ ISR(RX_vect) {
 	static uint8_t* row_start = tlc_data;
 
 	uint8_t data = UDR;
-	uint8_t isAddr = UDR & 0x80;
+	uint8_t isAddr = data & 0x80;
 
 	// Check for hardware buffer overflow
 	if (UCSRA & _BV(DOR))
