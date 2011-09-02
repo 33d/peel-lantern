@@ -17,11 +17,11 @@
 
 #include "atmega1280.h"
 
+#define STATUS_LED (_BV(7)) // arduino 13
 #else
 #include "atmegax8.h"
-#endif
-
 #define STATUS_LED (_BV(5)) // arduino 13
+#endif
 
 // The start and end TLC pins to activate
 #define TLC_START 1 // inclusive
