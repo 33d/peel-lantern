@@ -106,8 +106,8 @@ ISR(RX_vect) {
 	static uint8_t state = 0xFF;
 	static uint8_t* row_start = tlc_data;
 
-	uint8_t isAddr = UCSRB & _BV(RXB8);
 	uint8_t data = UDR;
+	uint8_t isAddr = UDR & 0x8F;
 
 	if (isAddr) {
 		// Check the state - whinge if we don't have enough data for a row
