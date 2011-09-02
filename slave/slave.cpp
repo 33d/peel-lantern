@@ -81,6 +81,7 @@ void show_data() {
 
 void die(uint8_t status) {
 	cli();
+	printf("Error:%02x\n", status);
 	for (uint8_t j = 0; j < 10; j++) {
 		for (uint8_t i = 0; i < status; i++) {
 			PORTB |= STATUS_LED;
