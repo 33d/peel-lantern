@@ -1,7 +1,14 @@
 #if !defined(__PEEL_ATMEGA_X8_H__)
 #define __PEEL_ATMEGA_X8_H__
 
+#include <stdio.h>
+
+#if defined __AVR_ATmega1280__
+#define RX_vect USART_RX0_vect
+#else
 #define RX_vect USART_RX_vect
+#endif
+
 #define UDR UDR0
 #define UCSRA UCSR0A
 #define RXB8 RXB80
@@ -13,10 +20,6 @@
 #if !defined(PEEL_BAUD)
 #error Define PEEL_BAUD first
 #endif
-
-// Debugging is unavailable; we're using the only serial port
-#define printf(...) ;
-#define puts(x) ;
 
 #if defined(PEEL_U2X)
 #define PEEL_UBRR_VAL ((F_CPU / 8 / PEEL_BAUD) - 1)

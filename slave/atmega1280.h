@@ -1,40 +1,7 @@
 #if !defined(__PEEL_ATMEGA1280_H__)
 #define __PEEL_ATMEGA1280_H__
 
-#include <stdio.h>
-
-#define RX_vect USART1_RX_vect
-#define UDR UDR1
-#define UCSRA UCSR1A
-#define RXB8 RXB81
-#define MPCM MPCM1
-#define DOR DOR1
-// rx, enable interrupt for rx
-#define enable_serial() (UCSR1B = _BV(RXEN1) | _BV(RXCIE1))
-
-#if !defined(PEEL_BAUD)
-#error Define PEEL_BAUD first
-#endif
-
-#if defined(PEEL_U2X)
-#define PEEL_UBRR_VAL ((F_CPU / 8 / PEEL_BAUD) - 1)
-#else
-#define PEEL_UBRR_VAL ((F_CPU / 16 / PEEL_BAUD) - 1)
-#endif
-
-void peel_serial_init() {
-	  UBRR1H = (uint8_t) (PEEL_UBRR_VAL >> 8);
-	  UBRR1L = (uint8_t) (PEEL_UBRR_VAL);
-	  // Asynchronous, no parity, 1 stop bit, 9 data bits (the high bit is the
-	  // address bit)
-	  UCSR1C = _BV(UCSZ11) | _BV(UCSZ10);
-	  // Turn off the serial port, until an address frame arrives
-	  // Get interrupts for address frames only
-	  UCSR1A = _BV(MPCM1)
-	#if defined(PEEL_U2X)
-	    | _BV(U2X1)
-	#endif
-	  ;
-}
+// The mega1280 and mega328 use the same configuration now
+#include "atmegax8.h"
 
 #endif

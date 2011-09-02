@@ -8,15 +8,12 @@
 #include "Tlc5940.h"
 
 #define PEEL_BAUD 500000
-
-#if defined __AVR_ATmega1280__
+#define SERIAL_BAUD PEEL_BAUD
 // Configure the serial port for debugging
-#define SERIAL_BAUD 500000
-//#define SERIAL_U2X 0
 #include "serial.h"
 
+#if defined __AVR_ATmega1280__
 #include "atmega1280.h"
-
 #define STATUS_LED (_BV(7)) // arduino 13
 #else
 #include "atmegax8.h"
@@ -168,11 +165,8 @@ int main(void) {
 	// Shift register (I actually clobber all of port C)
 	DDRC = 0xFF;
 
-#if defined __AVR_ATmega1280__
-	serial_init();
-#endif
-
 	peel_serial_init();
+	serial_init();
 
 	// What's my address?  It's stored in address 0 of the EEPROM.
 	EEAR = 0;
