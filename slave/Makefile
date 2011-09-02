@@ -146,3 +146,6 @@ upload: $(PRG).hex reset_arduino
 
 setaddr: reset_arduino
 	$(AVRDUDE) -Ueeprom:w:$(ADDR):m
+
+getaddr: reset_arduino
+	echo 'dump eeprom 0 1' | $(AVRDUDE) -t
