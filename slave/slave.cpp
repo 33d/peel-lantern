@@ -37,7 +37,7 @@ uint8_t* tlc_GSData = tlc_data;
 
 // The lookup table for the LED brightness.  If we need the RAM space, this
 // could be pregenerated, and stored in flash.
-uint16_t lookup[256];
+uint16_t lookup[128];
 // The magic number that adjusts the brightness - higher numbers make
 // mid-range values darker
 #define BRIGHTNESS 3
@@ -146,8 +146,8 @@ void generate_lookup() {
 	uint8_t i = 0;
 	// don't use "for" with the 8-bit value!
 	do {
-		lookup[i] = n * pow(i, BRIGHTNESS);
-	} while (++i != 0);
+		lookup[i] = n * pow(i*2, BRIGHTNESS);
+	} while (++i < 128);
 }
 
 int main(void) {

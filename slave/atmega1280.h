@@ -24,10 +24,9 @@ void peel_serial_init() {
 	  UBRR1H = (uint8_t) (PEEL_UBRR_VAL >> 8);
 	  UBRR1L = (uint8_t) (PEEL_UBRR_VAL);
 	  // Enable rx, and interrupt for rx
-	  UCSR1B = _BV(RXEN1) | _BV(RXCIE1)
-	  // Asynchronous, no parity, 1 stop bit, 9 data bits (9th bit is the address
-	  // bit for multi-processor mode)
-	     | _BV(UCSZ12);
+	  UCSR1B = _BV(RXEN1) | _BV(RXCIE1);
+	  // Asynchronous, no parity, 1 stop bit, 9 data bits (the high bit is the
+	  // address bit)
 	  UCSR1C = _BV(UCSZ11) | _BV(UCSZ10);
 	  // Turn off the serial port, until an address frame arrives
 	  // Get interrupts for address frames only
