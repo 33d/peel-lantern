@@ -7,8 +7,8 @@
 #define RXB8 RXB80
 #define MPCM MPCM0
 #define DOR DOR0
-// rx, enable interrupt for rx
-#define enable_serial() (UCSR0B = _BV(RXEN0) | _BV(RXCIE0))
+// Enable RX
+#define enable_serial() (UCSR0B |= _BV(RXEN0))
 
 #if !defined(PEEL_BAUD)
 #error Define PEEL_BAUD first
@@ -28,6 +28,8 @@ void peel_serial_init() {
   // Init serial
   UBRR0H = (uint8_t) (PEEL_UBRR_VAL >> 8);
   UBRR0L = (uint8_t) (PEEL_UBRR_VAL);
+  // Turn on the RX interrupt
+  UCSR0B = _BV(RXCIE0);
   // Asynchronous, no parity, 1 stop bit, 8 data bits (the high bit is the
   // address bit)
   UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
