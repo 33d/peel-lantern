@@ -109,6 +109,10 @@ ISR(RX_vect) {
 	uint8_t data = UDR;
 	uint8_t isAddr = UDR & 0x80;
 
+	// Check for hardware buffer overflow
+	if (UCSRA & _BV(DOR))
+		die(2);
+
 	if (isAddr) {
 		// Check the state - whinge if we don't have enough data for a row
 		if (state != 0xFF) {

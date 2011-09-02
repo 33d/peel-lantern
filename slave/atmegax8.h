@@ -6,6 +6,7 @@
 #define UCSRA UCSR0A
 #define RXB8 RXB80
 #define MPCM MPCM0
+#define DOR DOR0
 // rx, enable interrupt for rx
 #define enable_serial() (UCSR0B = _BV(RXEN0) | _BV(RXCIE0))
 
