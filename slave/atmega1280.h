@@ -6,9 +6,10 @@
 #define RX_vect USART1_RX_vect
 #define UDR UDR1
 #define UCSRA UCSR1A
-#define UCSRB UCSR1B
 #define RXB8 RXB81
 #define MPCM MPCM1
+// rx, enable interrupt for rx
+#define enable_serial() (UCSR1B = _BV(RXEN1) | _BV(RXCIE1))
 
 #if !defined(PEEL_BAUD)
 #error Define PEEL_BAUD first
@@ -23,8 +24,6 @@
 void peel_serial_init() {
 	  UBRR1H = (uint8_t) (PEEL_UBRR_VAL >> 8);
 	  UBRR1L = (uint8_t) (PEEL_UBRR_VAL);
-	  // Enable rx, and interrupt for rx
-	  UCSR1B = _BV(RXEN1) | _BV(RXCIE1);
 	  // Asynchronous, no parity, 1 stop bit, 9 data bits (the high bit is the
 	  // address bit)
 	  UCSR1C = _BV(UCSZ11) | _BV(UCSZ10);

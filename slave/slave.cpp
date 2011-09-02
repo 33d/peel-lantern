@@ -190,6 +190,10 @@ int main(void) {
 	enable_XLAT_pulses();
 	set_XLAT_interrupt();
 
+	// Wait until here to enable the serial port, so data already on the
+	// line doesn't overflow the rx buffer
+	enable_serial();
+
 	while (1) {
 		while (events) {
 			// Run the serial code here, so interrupts can still run
