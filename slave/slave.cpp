@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <avr/sleep.h>
+#include <util/delay.h>
 #include <math.h>
 
 #include "Tlc5940.h"
@@ -81,11 +82,19 @@ void show_data() {
 	printf("\n");
 }
 
-void show_error(uint8_t error) {
-	printf("Error %d\n", error);
-	Tlc.set(error + 1, 4095);
-	// Turn off all interrupts except the one for BLANK and GSCLK
-	UCSRB |= ~_BV(4);
+void die(uint8_t status) {
+	cli();
+	for (uint8_t i = 0; i < 10; i++) {
+		for (uint8_t i = 0; i < status; i++) {
+			PORTB |= STATUS_LED;
+			_delay_ms(20);
+			PORTB &= ~STATUS_LED;
+			_delay_ms(100);
+		}
+		_delay_ms(600);
+	}
+	// Try a reset... will this work?
+	__asm__("jmp 0");
 }
 
 ISR(RX_vect) {
@@ -103,7 +112,7 @@ ISR(RX_vect) {
 	if (isAddr) {
 		// Check the state - whinge if we don't have enough data for a row
 		if (state != 0xFF) {
-			show_error(1);
+			die(6);
 			return;
 		}
 		if (data == id) {
