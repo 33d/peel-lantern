@@ -81,6 +81,9 @@ void show_data() {
 
 void die(uint8_t status) {
 	cli();
+	// Turn off SPI, so we can control pin 13
+	SPCR &= ~_BV(SPE);
+	DDRB |= STATUS_LED;
 	printf("Error:%02x\n", status);
 	for (uint8_t j = 0; j < 10; j++) {
 		for (uint8_t i = 0; i < status; i++) {
