@@ -98,6 +98,47 @@ void die(uint8_t status) {
 	__asm__("jmp 0");
 }
 
+// Points to the start of the row being updated
+volatile uint8_t* row_start = tlc_data;
+
+uint8_t handle_addr(uint8_t data, uint8_t state) {
+	// Check the state - whinge if we don't have enough data for a row
+	if (state != 0xFF) {
+		die(6);
+	}
+	// The low 4 bits contain the chip ID... is this us?
+	if ((data & 0x0F) == id) {
+		// The row number is in bits 4-6
+		uint8_t row_num = (data >> 4) & 0x07;
+		row_start = tlc_data + (NUM_TLCS * 24 * row_num);
+		state = TLC_START;
+	}
+
+	return state;
+}
+
+uint8_t handle_data(uint8_t data, uint8_t state) {
+	// Do we still have more data for this chip?  The bottom 4 bits tell
+	// us the pin for the current chip.
+	if ((state & 0x0F) < TLC_END) {
+		// Be sure to update the correct part of the framebuffer
+		Tlc.set(state++, lookup[data], const_cast<uint8_t*>(row_start));
+	}
+	if ((state & 0x0F) >= TLC_END) {
+		// Set state to pin 0 of the next chip
+		state = (state & 0xF0) + 16;
+		// Have we run out of chips to write to?
+		if (state >= NUM_TLCS * 16) {
+			// End of data, go back to address mode
+			state = 0xFF;
+		} else {
+			// go to the next chip
+			state += TLC_START;
+		}
+	}
+	return state;
+}
+
 ISR(RX_vect) {
 	// 0xFF = idle, 0xFE=waiting for which row to update,
 	// 0-(NUM_TLCS*16) = receiving data
@@ -105,7 +146,6 @@ ISR(RX_vect) {
 	// has 16 outputs, the top 4 bits of this number contain the index of the chip
 	// currently being written to.
 	static uint8_t state = 0xFF;
-	static uint8_t* row_start = tlc_data;
 
 	uint8_t data = UDR;
 	uint8_t isAddr = data & 0x80;
@@ -114,41 +154,13 @@ ISR(RX_vect) {
 	if (UCSRA & _BV(DOR))
 		die(2);
 
+	// Do as little as possible here, so we can ignore packets as fast as
+	// possible without all of the pushes.  Using multi-processor mode would
+	// work better but I can't get it working.
 	if (isAddr) {
-		// Check the state - whinge if we don't have enough data for a row
-		if (state != 0xFF) {
-			die(6);
-			return;
-		}
-		// The low 4 bits contain the chip ID... is this us?
-		if ((data & 0x0F) == id) {
-			// The row number is in bits 4-6
-			uint8_t row_num = (data >> 4) & 0x07;
-			row_start = tlc_data + (NUM_TLCS * 24 * row_num);
-			state = TLC_START;
-			// Turn on interrupts for data frames
-			UCSRA &= ~(_BV(MPCM));
-		}
-	} else {
-			// Do we still have more data for this chip?  The bottom 4 bits tell
-			// us the pin for the current chip.
-			if ((state & 0x0F) < TLC_END) {
-				// Be sure to update the correct part of the framebuffer
-				Tlc.set(state++, lookup[data], row_start);
-			}
-			if ((state & 0x0F) >= TLC_END) {
-				// Set state to pin 0 of the next chip
-				state = (state & 0xF0) + 16;
-				// Have we run out of chips to write to?
-				if (state >= NUM_TLCS * 16) {
-					// End of data, go back to address mode
-					state = 0xFF;
-					UCSRA |= _BV(MPCM);
-				} else {
-					// go to the next chip
-					state += TLC_START;
-				}
-			}
+		state = handle_addr(data, state);
+	} else if (state != 0xFF) {
+		state = handle_data(data, state);
 	}
 }
 

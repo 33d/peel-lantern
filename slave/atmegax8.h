@@ -12,7 +12,6 @@
 #define UDR UDR0
 #define UCSRA UCSR0A
 #define RXB8 RXB80
-#define MPCM MPCM0
 #define DOR DOR0
 // Enable RX
 #define enable_serial() (UCSR0B |= _BV(RXEN0))
@@ -36,9 +35,7 @@ void peel_serial_init() {
   // Asynchronous, no parity, 1 stop bit, 8 data bits (the high bit is the
   // address bit)
   UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
-  // Turn off the serial port, until an address frame arrives
-  // Get interrupts for address frames only
-  UCSR0A = _BV(MPCM0)
+  UCSR0A = 0
 #if defined(SERIAL_U2X)
     | _BV(U2X0)
 #endif
