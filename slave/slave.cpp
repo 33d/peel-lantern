@@ -121,7 +121,7 @@ ISR(RX_vect) {
 			return;
 		}
 		// The low 4 bits contain the chip ID... is this us?
-		if (data & 0x0F == id) {
+		if ((data & 0x0F) == id) {
 			// The row number is in bits 4-6
 			uint8_t row_num = (data >> 4) & 0x07;
 			row_start = tlc_data + (NUM_TLCS * 24 * row_num);
