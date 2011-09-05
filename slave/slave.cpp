@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
@@ -7,7 +8,7 @@
 
 #include "Tlc5940.h"
 
-#define PEEL_BAUD 500000
+#define PEEL_BAUD 1000000
 #define SERIAL_BAUD PEEL_BAUD
 // Configure the serial port for debugging
 #include "serial.h"
@@ -26,6 +27,11 @@
 
 #define ROWS 8
 
+// Calls die_impl.  Using asm stops the compiler trying to save
+// registers at the start of interrupt routines, considerably reducing
+// the ISR prologue.
+#define die(x) __asm__("ldi r24, %0 \n\t jmp die_impl \n\t" : : "M" (x))
+
 uint8_t id;
 
 uint8_t tlc_data[NUM_TLCS * 24 * ROWS];
@@ -42,11 +48,23 @@ uint16_t lookup[128];
 
 // Events
 // Keep the events in a low register, for fast access
-#define events GPIOR0
+// I used to use GPIOR0, but now I use that for the data.  Port C will do,
+// but remember that bit 7 is unavailable.
+#define events PORTC
 namespace Event {
 	static const uint8_t update_row = 0x1;
 	static const uint8_t message_sent = 0x2;
+	static const uint8_t rx_valid = 0x4;
 };
+// Received data will go here for processing by the main loop.
+#define rx_data GPIOR0
+
+// 0xFF = idle, 0xFE=waiting for which row to update,
+// 0-(NUM_TLCS*16) = receiving data
+// 0..NUM_TLCS * 16 is the index of the pin being written to.  Since the TLC
+// has 16 outputs, the top 4 bits of this number contain the index of the chip
+// currently being written to.
+static uint8_t state = 0xFF;
 
 uint8_t row = 0;
 
@@ -79,7 +97,14 @@ void show_data() {
 	printf("\n");
 }
 
-void die(uint8_t status) {
+// I need to reference die_impl from assembler, C++ will mangle the name
+extern "C" {
+
+// This was supposed to get rid of the ISR prologue, but it doesn't seem to
+// work
+void die_impl(uint8_t) __attribute__ ((noreturn));
+
+void die_impl(uint8_t status) {
 	cli();
 	// Turn off SPI, so we can control pin 13
 	SPCR &= ~_BV(SPE);
@@ -96,6 +121,10 @@ void die(uint8_t status) {
 	}
 	// Try a reset... will this work?
 	__asm__("jmp 0");
+	// stop the compiler complaining that this function returns
+	abort();
+}
+
 }
 
 // Points to the start of the row being updated
@@ -139,24 +168,29 @@ uint8_t handle_data(uint8_t data, uint8_t state) {
 	return state;
 }
 
+// Don't call any functions from this method, because it makes a huge prologue
 ISR(RX_vect) {
-	// 0xFF = idle, 0xFE=waiting for which row to update,
-	// 0-(NUM_TLCS*16) = receiving data
-	// 0..NUM_TLCS * 16 is the index of the pin being written to.  Since the TLC
-	// has 16 outputs, the top 4 bits of this number contain the index of the chip
-	// currently being written to.
-	static uint8_t state = 0xFF;
+	// Forcing r0 to be used saves a push instruction
+	volatile register uint8_t r0 asm("r0");
 
-	uint8_t data = UDR;
-	uint8_t isAddr = data & 0x80;
-
-	// Check for hardware buffer overflow
-	if (UCSRA & _BV(DOR))
+	// Check for hardware buffer overflow - force the compiler to use r0
+	// instead of picking one at random
+	if ((r0 = UCSRA) & _BV(DOR))
+		// This function never returns, so we don't care which registers
+		// it clobbers
 		die(2);
 
-	// Do as little as possible here, so we can ignore packets as fast as
-	// possible without all of the pushes.  Using multi-processor mode would
-	// work better but I can't get it working.
+	// Make sure the previous message was handled
+	if (events & Event::rx_valid)
+		die(3);
+
+	rx_data = (r0 = UDR);
+	events |= Event::rx_valid;
+}
+
+void handle_rx_data(uint8_t data) {
+	uint8_t isAddr = data & 0x80;
+
 	if (isAddr) {
 		state = handle_addr(data, state);
 	} else if (state != 0xFF) {
@@ -179,6 +213,9 @@ int main(void) {
     generate_lookup();
 
 	// Shift register (I actually clobber all of port C)
+	DDRC = 0xFF;
+	// I abuse port C to put the event flags in, so make sure nobody else
+	// can change them
 	DDRC = 0xFF;
 
 	peel_serial_init();
@@ -209,10 +246,18 @@ int main(void) {
 
 	while (1) {
 		while (events) {
+			// RX events get top priority
+			if (events & Event::rx_valid) {
+				// grab a copy of rx_data first, so the interrupt doesn't
+				// change it on us
+				uint8_t data = rx_data;
+				events &= ~Event::rx_valid;
+				handle_rx_data(data);
+			}
 			// Run the serial code here, so interrupts can still run
-			if (events & Event::message_sent)
+			else if (events & Event::message_sent)
 				show_data();
-			if (events & Event::update_row) {
+			else if (events & Event::update_row) {
 				events &= ~Event::update_row;
 				updateRow();
 			}
