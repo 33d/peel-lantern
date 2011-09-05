@@ -115,7 +115,7 @@ void die_impl(uint8_t status) {
 			PORTB |= STATUS_LED;
 			_delay_ms(20);
 			PORTB &= ~STATUS_LED;
-			_delay_ms(100);
+			_delay_ms(200);
 		}
 		_delay_ms(600);
 	}
