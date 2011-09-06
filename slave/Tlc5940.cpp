@@ -59,6 +59,8 @@ volatile uint8_t tlc_needXLAT;
 static uint8_t firstGSInput;
 
 /** Interrupt called after an XLAT pulse to prevent more XLAT pulses. */
+// Moved to slave.cpp, so I can "inline" the callback (and save "push"es)
+#if 0
 ISR(TIMER1_OVF_vect)
 {
     disable_XLAT_pulses();
@@ -69,6 +71,7 @@ ISR(TIMER1_OVF_vect)
         tlc_onUpdateFinished();
     }
 }
+#endif
 
 /** \defgroup ReqVPRG_ENABLED Functions that Require VPRG_ENABLED
     Functions that require VPRG_ENABLED == 1.

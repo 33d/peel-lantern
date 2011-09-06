@@ -77,7 +77,8 @@ void updateRow() {
 }
 
 // Called just after the data is committed to the output pins
-void tlc_onUpdateFinished() {
+// The "inline" reduces the ISR prologue
+inline void tlc_onUpdateFinished() {
 	// Update the shift register ASAP after the XLAT pulse
 	if (row == 0)
 		// Clock in 1 bit of data
@@ -88,6 +89,13 @@ void tlc_onUpdateFinished() {
 	PORTC &= ~_BV(PORTC3);
 
 	events |= Event::update_row;
+}
+
+ISR(TIMER1_OVF_vect) {
+    disable_XLAT_pulses();
+    clear_XLAT_interrupt();
+    tlc_needXLAT = 0;
+	tlc_onUpdateFinished();
 }
 
 void show_data() {
