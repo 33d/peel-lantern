@@ -41,7 +41,8 @@ uint8_t* tlc_GSData = tlc_data;
 
 // The lookup table for the LED brightness.  If we need the RAM space, this
 // could be pregenerated, and stored in flash.
-uint16_t lookup[128];
+uint16_t lookup_even[128]; // for even columns - the bits are shifted
+uint16_t lookup_odd[128];  // for odd columns
 // The magic number that adjusts the brightness - higher numbers make
 // mid-range values darker
 #define BRIGHTNESS 3
@@ -138,7 +139,7 @@ void die_impl(uint8_t status) {
 // Points to the start of the row being updated
 volatile uint8_t* row_start = tlc_data;
 
-uint8_t handle_addr(uint8_t data, uint8_t state) {
+void handle_addr(uint8_t data) {
 	// Check the state - whinge if we don't have enough data for a row
 	if (state != 0xFF) {
 		die(6);
@@ -150,16 +151,31 @@ uint8_t handle_addr(uint8_t data, uint8_t state) {
 		row_start = tlc_data + (NUM_TLCS * 24 * row_num);
 		state = TLC_START;
 	}
-
-	return state;
 }
 
-uint8_t handle_data(uint8_t data, uint8_t state) {
+void handle_data(uint8_t data) {
+	// The next part of the "framebuffer" to write to
+	static uint8_t* buf;
+	// The value of the previous even column
+	static uint16_t even;
+
 	// Do we still have more data for this chip?  The bottom 4 bits tell
 	// us the pin for the current chip.
 	if ((state & 0x0F) < TLC_END) {
-		// Be sure to update the correct part of the framebuffer
-		Tlc.set(state++, lookup[data], const_cast<uint8_t*>(row_start));
+		// Update the framebuffer
+		if (state & 1) {
+			// odd column
+			uint16_t odd = lookup_odd[data];
+			// Copy "even", or the compiler will store it again unnecessarily
+			uint16_t ev = even;
+			ev |= odd >> 8;
+			*((uint16_t*) buf) = ev;
+			buf += 2;
+			*buf = (uint8_t) odd;
+			++buf;
+		} else
+			even = lookup_even[data];
+		++state;
 	}
 	if ((state & 0x0F) >= TLC_END) {
 		// Set state to pin 0 of the next chip
@@ -171,9 +187,10 @@ uint8_t handle_data(uint8_t data, uint8_t state) {
 		} else {
 			// go to the next chip
 			state += TLC_START;
+			// Position the buffer at the previous even column
+			buf = const_cast<uint8_t*>(row_start) + (state / 2 * 3);
 		}
 	}
-	return state;
 }
 
 // Don't call any functions from this method, because it makes a huge prologue
@@ -200,9 +217,9 @@ void handle_rx_data(uint8_t data) {
 	uint8_t isAddr = data & 0x80;
 
 	if (isAddr) {
-		state = handle_addr(data, state);
+		handle_addr(data);
 	} else if (state != 0xFF) {
-		state = handle_data(data, state);
+		handle_data(data);
 	}
 }
 
@@ -213,7 +230,8 @@ void generate_lookup() {
 	uint8_t i = 0;
 	// don't use "for" with the 8-bit value!
 	do {
-		lookup[i] = n * pow(i*2, BRIGHTNESS);
+		lookup_odd[i] = n * pow(i*2, BRIGHTNESS);
+		lookup_even[i] = lookup_odd[i] << 4;
 	} while (++i < 128);
 }
 
