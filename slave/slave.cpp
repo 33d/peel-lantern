@@ -156,8 +156,6 @@ void handle_addr(uint8_t data) {
 void handle_data(uint8_t data) {
 	// The next part of the "framebuffer" to write to
 	static uint8_t* buf;
-	// The value of the previous even column
-	static uint16_t even;
 
 	// Do we still have more data for this chip?  The bottom 4 bits tell
 	// us the pin for the current chip.
@@ -166,15 +164,15 @@ void handle_data(uint8_t data) {
 		if (state & 1) {
 			// odd column
 			uint16_t odd = lookup_odd[data];
-			// Copy "even", or the compiler will store it again unnecessarily
-			uint16_t ev = even;
-			ev |= odd >> 8;
-			*((uint16_t*) buf) = ev;
-			buf += 2;
+			*buf |= odd >> 8;
+			++buf;
 			*buf = (uint8_t) odd;
 			++buf;
-		} else
-			even = lookup_even[data];
+		} else {
+			uint16_t val = lookup_even[data];
+			*((uint16_t*) buf) = val;
+			++buf;
+		}
 		++state;
 	}
 	if ((state & 0x0F) >= TLC_END) {
