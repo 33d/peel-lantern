@@ -186,8 +186,7 @@ void handle_data(uint8_t data) {
 		} else {
 			// go to the next chip
 			state += TLC_START;
-			// Position the buffer at the previous even column
-			buf = const_cast<uint8_t*>(row_start) + (state / 2 * 3);
+			buf += (16 - TLC_END + TLC_START) * 3 / 2;
 		}
 	}
 }
