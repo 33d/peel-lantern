@@ -50,12 +50,13 @@ uint16_t lookup_odd[128];  // for odd columns
 // Events
 // Keep the events in a low register, for fast access
 // I used to use GPIOR0, but now I use that for the data.  Port C will do,
-// but remember that bit 7 is unavailable.
+// but remember that bit 7 is unavailable, and bits 0 and 3 are used for the
+// shift register.
 #define events PORTC
 namespace Event {
-	static const uint8_t update_row = 0x1;
-	static const uint8_t message_sent = 0x2;
-	static const uint8_t rx_valid = 0x4;
+	static const uint8_t update_row = _BV(1);
+	static const uint8_t message_sent = _BV(2);
+	static const uint8_t rx_valid = _BV(4);
 };
 // Received data will go here for processing by the main loop.
 #define rx_data GPIOR0
