@@ -32,6 +32,7 @@
 // the ISR prologue.
 #define die(x) __asm__("ldi r24, %0 \n\t jmp die_impl \n\t" : : "M" (x))
 
+// The chip ID, shifted left 8 to avoid shifts when data is received
 uint8_t id;
 
 uint8_t tlc_data[NUM_TLCS * 24 * ROWS];
@@ -145,10 +146,10 @@ void handle_addr(uint8_t data) {
 	if (state != 0xFF) {
 		die(6);
 	}
-	// The low 4 bits contain the chip ID... is this us?
-	if ((data & 0x0F) == id) {
-		// The row number is in bits 4-6
-		uint8_t row_num = (data >> 4) & 0x07;
+	// Bits 4-6 contain the chip ID ("id" is already shifted)... is this us?
+	if ((data & 0x70) == id) {
+		// The row number is in bits 0-3
+		uint8_t row_num = data & 0x0F;
 		row_start = tlc_data + (NUM_TLCS * 24 * row_num);
 		state = TLC_START;
 	}
@@ -248,7 +249,7 @@ int main(void) {
 	// What's my address?  It's stored in address 0 of the EEPROM.
 	EEAR = 0;
 	EECR |= _BV(EERE);
-	id = EEDR;
+	id = EEDR << 4;
 
 	puts("Ready");
 
