@@ -32,9 +32,9 @@ void peel_serial_init() {
   UBRR0L = (uint8_t) (PEEL_UBRR_VAL);
   // Turn on the RX interrupt
   UCSR0B = _BV(RXCIE0);
-  // Asynchronous, no parity, 1 stop bit, 8 data bits (the high bit is the
+  // Asynchronous, odd parity, 1 stop bit, 8 data bits (the high bit is the
   // address bit)
-  UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
+  UCSR0C = _BV(UPM01) | _BV(UPM00) | _BV(UCSZ01) | _BV(UCSZ00);
   UCSR0A = 0
 #if defined(SERIAL_U2X)
     | _BV(U2X0)
