@@ -32,8 +32,7 @@
 // the ISR prologue.
 #define die(x) __asm__("ldi r24, %0 \n\t jmp die_impl \n\t" : : "M" (x))
 
-// The chip ID, shifted left 8 to avoid shifts when data is received
-uint8_t id;
+#define id (SLAVE_ID << 4)
 
 uint8_t tlc_data[NUM_TLCS * 24 * ROWS];
 // The data that the TLC library uses.  I've removed it from Tlc5940.cpp; this
@@ -245,11 +244,6 @@ int main(void) {
 
 	peel_serial_init();
 	serial_init();
-
-	// What's my address?  It's stored in address 0 of the EEPROM.
-	EEAR = 0;
-	EECR |= _BV(EERE);
-	id = EEDR << 4;
 
 	puts("Ready");
 

@@ -5,6 +5,9 @@ OBJECTS        =
 AVR_OBJECTS    = serial Tlc5940 $(PROJECT) 
 TEST_OBJECTS   = 
 
+# The ID of this slave
+SLAVE_ID      ?= 0
+
 ARDUINO_HOME  ?= /opt/arduino-0018
 
 # "arduino" or any programmer supported by avrdude
@@ -18,8 +21,8 @@ MCU_TARGET    ?= atmega328p
 #MCU_TARGET     = atmega168
 OPTIMIZE       = -Os
 
-DEFS           = -DF_CPU=16000000L
-#DEFS           = -DF_CPU=8000000L
+DEFS           = -DF_CPU=16000000L -DSLAVE_ID=$(SLAVE_ID)
+#DEFS           = -DF_CPU=8000000L -DSLAVE_ID=$(SLAVE_ID)
 LIBS           = -lm
 TEST_LIBS       = -lcunit
 
