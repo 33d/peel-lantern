@@ -34,6 +34,11 @@
 
 #define id (SLAVE_ID << 4)
 
+// The data is sent interleaved between each slave, this contains the
+// slave the next bit of data is for
+// (nothing seems to use r5...)
+volatile register uint8_t data_for_slave asm("r5");
+
 uint8_t tlc_data[NUM_TLCS * 24 * ROWS];
 // The data that the TLC library uses.  I've removed it from Tlc5940.cpp; this
 // one will point somewhere into tlc_data depending on the row.
@@ -207,8 +212,17 @@ ISR(RX_vect) {
 	if (events & Event::rx_valid)
 		die(3);
 
-	rx_data = (r0 = UDR);
-	events |= Event::rx_valid;
+	r0 = UDR;
+	// address bit
+	if (r0 & 0x80) {
+		data_for_slave = 0;
+		rx_data = r0;
+	} else if (data_for_slave == id) {
+		rx_data = r0;
+		data_for_slave = (data_for_slave + 1) % NUM_TLCS;
+		// ignore the event if it's not for us
+		events |= Event::rx_valid;
+	}
 }
 
 void handle_rx_data(uint8_t data) {
