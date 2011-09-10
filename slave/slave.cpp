@@ -278,24 +278,21 @@ int main(void) {
 	enable_serial();
 
 	while (1) {
-		while (events) {
-			// RX events get top priority
-			if (events & Event::rx_valid) {
-				// grab a copy of rx_data first, so the interrupt doesn't
-				// change it on us
-				uint8_t data = rx_data;
-				events &= ~Event::rx_valid;
-				handle_rx_data(data);
-			}
-			// Run the serial code here, so interrupts can still run
-			else if (events & Event::message_sent)
-				show_data();
-			else if (events & Event::update_row) {
-				events &= ~Event::update_row;
-				updateRow();
-			}
+		// RX events get top priority
+		if (events & Event::rx_valid) {
+			// grab a copy of rx_data first, so the interrupt doesn't
+			// change it on us
+			uint8_t data = rx_data;
+			events &= ~Event::rx_valid;
+			handle_rx_data(data);
 		}
-		sleep_mode();
+		// Run the serial code here, so interrupts can still run
+		else if (events & Event::message_sent)
+			show_data();
+		else if (events & Event::update_row) {
+			events &= ~Event::update_row;
+			updateRow();
+		}
 	}
 
 	return 0;
