@@ -19,7 +19,7 @@ UPLOAD_PORT   ?= /dev/ttyUSB0
 MCU_TARGET    ?= atmega328p
 #MCU_TARGET     = atmega1280
 #MCU_TARGET     = atmega168
-OPTIMIZE       = -Os
+OPTIMIZE       = -O2
 
 DEFS           = -DF_CPU=16000000L -DSLAVE_ID=$(SLAVE_ID)
 #DEFS           = -DF_CPU=8000000L -DSLAVE_ID=$(SLAVE_ID)
