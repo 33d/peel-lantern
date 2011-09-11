@@ -2,7 +2,7 @@ PROJECT	       = slave
 
 PRG            = $(PROJECT)
 OBJECTS        = 
-AVR_OBJECTS    = tlc5940 $(PROJECT) 
+AVR_OBJECTS    = $(PROJECT) 
 TEST_OBJECTS   = 
 
 # The ID of this slave
