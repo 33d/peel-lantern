@@ -4,8 +4,8 @@
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 
-#define PEEL_BAUD 2000000
-#define PEEL_U2X
+#define PEEL_BAUD 1000000
+// #define PEEL_U2X
 #define STATUS_LED (_BV(5)) // arduino 13
 // Enable RX
 #define enable_serial() (UCSR0B |= _BV(RXEN0))
