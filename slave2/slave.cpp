@@ -131,6 +131,8 @@ void init_serial() {
   UBRR0L = (uint8_t) (PEEL_UBRR_VAL);
   // Asynchronous, no parity, 1 stop bit, 8 data bits
   UCSR0C = _BV(UPM01) | _BV(UCSZ01) | _BV(UCSZ00);
+  // TX enable. Don't turn on RX yet - wait until we're ready to receive
+  UCSR0B = _BV(TXEN0);
   UCSR0A = 0
 #if defined(SERIAL_U2X)
 	| _BV(U2X0)
@@ -143,6 +145,9 @@ int main(void) {
 	init_serial();
 	init_blank_timer();
 	init_xlat();
+
+	// Send a test message
+	UDR0 = 'X';
 
 	// Wait until here to enable the serial port, so data already on the
 	// line doesn't overflow the rx buffer
