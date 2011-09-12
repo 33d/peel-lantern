@@ -101,8 +101,9 @@ static void handle_data(uint8_t data) {
 void init_blank_timer() {
 	// Blank: activate every 4096 cycles
 	// Set OC1B at bottom, clear at compare match
-	TCCR1A = _BV(COM1B1);
-	// CTC mode, TOP=ICR1
+	TCCR1A = _BV(COM1B1)
+	// Fast PWM mode, TOP=ICR1
+			| _BV(WGM11);
 	TCCR1B = _BV(WGM13) | _BV(WGM12);
 	// How many clock ticks BLANK needs to be low for (at least 300ns, as
 	// stated in the datasheet
