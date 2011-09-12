@@ -77,7 +77,7 @@ static uint8_t read_data() {
 // the "static" seems to inline this function
 static void handle_data(uint8_t data) {
 	// Address byte
-	if (data &= 1) {
+	if (data & 1) {
 		if ((data ^ id) == 1) {
 			rx_count = 0;
 			events |= Event::receiving_data;
