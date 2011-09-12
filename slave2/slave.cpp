@@ -85,7 +85,7 @@ static void handle_data(uint8_t data) {
 			events &= ~Event::receiving_data;
 	} else if (events & Event::receiving_data) {
 		// Check that the previous byte was sent
-		if (!(SPSR & _BV(SPIF)))
+		if (SPSR & _BV(WCOL))
 			die(4);
 		SPDR = data;
 		++rx_count;
