@@ -42,14 +42,8 @@ volatile register uint8_t rx_data asm("r5");
 // How many bytes of data we've received for this row
 #define rx_count GPIOR0
 
-// I need to reference die_impl from assembler, C++ will mangle the name
-extern "C" {
-
-// This was supposed to get rid of the ISR prologue, but it doesn't seem to
-// work
-void die_impl(uint8_t) __attribute__ ((noreturn));
-
-void die_impl(uint8_t status) {
+void die(uint8_t) __attribute__ ((noreturn));
+void die(uint8_t status) {
 	cli();
 	// Turn off SPI, so we can control pin 13
 	SPCR &= ~_BV(SPE);
@@ -68,12 +62,6 @@ void die_impl(uint8_t status) {
 	__asm__("jmp 0");
 	// stop the compiler complaining that this function returns
 	abort();
-}
-
-// Calls die_impl.  Using asm stops the compiler trying to save
-// registers at the start of interrupt routines, considerably reducing
-// the ISR prologue.
-#define die(x) __asm__("ldi r24, %0 \n\t jmp die_impl \n\t" : : "M" (x))
 }
 
 static uint8_t read_data() {
