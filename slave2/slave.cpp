@@ -33,7 +33,6 @@
 #define events PORTC
 namespace Event {
 	static const uint8_t receiving_data = _BV(1);
-	static const uint8_t rx_valid = _BV(4);
 };
 // Received data will go here for processing by the main loop.
 // (nothing seems to use r5...)
@@ -76,22 +75,14 @@ void die_impl(uint8_t status) {
 #define die(x) __asm__("ldi r24, %0 \n\t jmp die_impl \n\t" : : "M" (x))
 }
 
-ISR(USART_RX_vect) {
-	// Forcing r0 to be used saves a push instruction
-	volatile register uint8_t r0 asm("r0");
-
+static uint8_t read_data() {
 	// Check for hardware buffer overflow
-	if ((r0 = UCSR0A) & _BV(DOR0))
+	if (UCSR0A & _BV(DOR0))
 		// This function never returns, so we don't care which registers
 		// it clobbers
 		die(2);
 
-	// Make sure the previous message was handled
-	if (events & Event::rx_valid)
-		die(3);
-
-	rx_data = r0 = UDR0;
-	events |= Event::rx_valid;
+	return UDR0;
 }
 
 // the "static" seems to inline this function
@@ -149,8 +140,6 @@ void init_serial() {
   // Init serial
   UBRR0H = (uint8_t) (PEEL_UBRR_VAL >> 8);
   UBRR0L = (uint8_t) (PEEL_UBRR_VAL);
-  // Turn on the RX interrupt
-  UCSR0B = _BV(RXCIE0);
   // Asynchronous, odd parity, 1 stop bit, 8 data bits (the high bit is the
   // address bit)
   UCSR0C = _BV(UPM01) | _BV(UPM00) | _BV(UCSZ01) | _BV(UCSZ00);
@@ -172,11 +161,9 @@ int main(void) {
 	enable_serial();
 
 	while(true) {
-		if (events & Event::rx_valid) {
-			handle_data(rx_data);
-			events &= ~Event::rx_valid;
-		}
-		sleep_mode();
+		// is there serial data?
+		if (UCSR0A & RXC0)
+			handle_data(read_data());
 	}
 
 	return 0;
