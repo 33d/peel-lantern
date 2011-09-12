@@ -92,7 +92,7 @@ static void handle_data(uint8_t data) {
 		// is that it?
 		if (rx_count >= 96) {
 			XLAT_PORT |= _BV(XLAT_PIN);
-			events &= Event::receiving_data;
+			events &= ~Event::receiving_data;
 			XLAT_PORT &= ~_BV(XLAT_PIN);
 		}
 	}
