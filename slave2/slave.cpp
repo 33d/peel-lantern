@@ -5,6 +5,7 @@
 #include <avr/interrupt.h>
 
 #define PEEL_BAUD 2000000
+#define PEEL_U2X
 #define STATUS_LED (_BV(5)) // arduino 13
 // Enable RX
 #define enable_serial() (UCSR0B |= _BV(RXEN0))
@@ -140,9 +141,8 @@ void init_serial() {
   // Init serial
   UBRR0H = (uint8_t) (PEEL_UBRR_VAL >> 8);
   UBRR0L = (uint8_t) (PEEL_UBRR_VAL);
-  // Asynchronous, odd parity, 1 stop bit, 8 data bits (the high bit is the
-  // address bit)
-  UCSR0C = _BV(UPM01) | _BV(UPM00) | _BV(UCSZ01) | _BV(UCSZ00);
+  // Asynchronous, no parity, 1 stop bit, 8 data bits
+  UCSR0C = _BV(UPM01) | _BV(UCSZ01) | _BV(UCSZ00);
   UCSR0A = 0
 #if defined(SERIAL_U2X)
 	| _BV(U2X0)
@@ -162,7 +162,7 @@ int main(void) {
 
 	while(true) {
 		// is there serial data?
-		if (UCSR0A & RXC0)
+		if (UCSR0A & _BV(RXC0))
 			handle_data(read_data());
 	}
 
