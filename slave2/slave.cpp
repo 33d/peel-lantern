@@ -105,13 +105,10 @@ void init_blank_timer() {
 	// Fast PWM mode, TOP=ICR1
 			| _BV(WGM11);
 	TCCR1B = _BV(WGM13) | _BV(WGM12);
-	// How many clock ticks BLANK needs to be low for (at least 300ns, as
-	// stated in the datasheet
-	uint8_t blank_ticks = (300e-9 / (1.0 / F_CPU)) + 1;
 	// Blank every 4096 ticks
-	ICR1 = 4096 + blank_ticks;
-	// How long to hold BLANK low for
-	OCR1B = blank_ticks;
+	ICR1 = 4096;
+	// Clear BLANK when timer=1
+	OCR1B = 1;
 	// Timer on
 	// No prescaling (timer runs at clock frequency), keeps the BLANK
 	// signal short
