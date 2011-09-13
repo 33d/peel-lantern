@@ -9,6 +9,9 @@
 #define STATUS_LED (_BV(5)) // arduino 13
 // Enable RX
 #define enable_serial() (UCSR0B |= _BV(RXEN0))
+// Set OC1B at bottom, clear at compare match
+#define enable_blank() (TCCR1A |= _BV(COM1B1))
+#define disable_blank() (TCCR1A &= ~_BV(COM1B1))
 
 #define id (SLAVE_ID << 4)
 
@@ -91,19 +94,21 @@ static void handle_data(uint8_t data) {
 		++rx_count;
 		// is that it?
 		if (rx_count >= 96) {
+			// wait until the last bit of data has been sent
+			while (!(SPSR & _BV(SPIF)));
+			// stop the BLANK line
+			disable_blank();
 			XLAT_PORT |= _BV(XLAT_PIN);
 			events &= ~Event::receiving_data;
 			XLAT_PORT &= ~_BV(XLAT_PIN);
+			enable_blank();
 		}
 	}
 }
 
 void init_blank_timer() {
-	// Blank: activate every 4096 cycles
-	// Set OC1B at bottom, clear at compare match
-	TCCR1A = _BV(COM1B1)
 	// Fast PWM mode, TOP=ICR1
-			| _BV(WGM11);
+	TCCR1A = _BV(WGM11);
 	TCCR1B = _BV(WGM13) | _BV(WGM12);
 	// Blank every 4096 ticks
 	ICR1 = 4096;
