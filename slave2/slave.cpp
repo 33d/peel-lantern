@@ -27,7 +27,16 @@
 
 #define XLAT_PORT PORTB
 #define XLAT_DDR  DDRB
-#define XLAT_PIN  PB1
+#define XLAT_BIT  PB1
+#define BLANK_PORT PORTB
+#define BLANK_DDR  DDRB
+#define BLANK_BIT  PB2
+#define SCK_PORT PORTB
+#define SCK_DDR  DDRB
+#define SCK_BIT  PB3
+#define SIN_PORT PORTB
+#define SIN_DDR  DDRB
+#define SIN_BIT  PB5
 
 // Events
 // Keep the events in a low register, for fast access
@@ -98,15 +107,21 @@ static void handle_data(uint8_t data) {
 			while (!(SPSR & _BV(SPIF)));
 			// stop the BLANK line
 			disable_blank();
-			XLAT_PORT |= _BV(XLAT_PIN);
+			// and raise it
+			BLANK_PORT |= _BV(BLANK_BIT);
+			XLAT_PORT |= _BV(XLAT_BIT);
 			events &= ~Event::receiving_data;
-			XLAT_PORT &= ~_BV(XLAT_PIN);
+			XLAT_PORT &= ~_BV(XLAT_BIT);
+			BLANK_PORT &= ~_BV(BLANK_BIT);
 			enable_blank();
 		}
 	}
 }
 
 void init_blank_timer() {
+	// BLANK is an output; the timer output won't work without this
+	BLANK_DDR |= _BV(BLANK_BIT);
+
 	// Fast PWM mode, TOP=ICR1
 	TCCR1A = _BV(WGM11);
 	TCCR1B = _BV(WGM13) | _BV(WGM12);
@@ -121,14 +136,19 @@ void init_blank_timer() {
 }
 
 void init_tlc_data() {
+	// Set MOSI and SCK to output.  I don't know if I need this, but it won't
+	// hurt.
+	SCK_DDR |= _BV(SCK_BIT);
+	SIN_DDR |= _BV(SIN_BIT);
+
 	// Enable SPI, Master, set clock rate fck/2
 	SPCR = _BV(SPE) | _BV(MSTR);
 	SPSR = _BV(SPI2X);
 }
 
 void init_xlat() {
-	XLAT_DDR |= _BV(XLAT_PIN);
-	XLAT_PORT &= ~_BV(XLAT_PIN);
+	XLAT_DDR |= _BV(XLAT_BIT);
+	XLAT_PORT &= ~_BV(XLAT_BIT);
 }
 
 void init_serial() {
