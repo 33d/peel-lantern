@@ -37,6 +37,9 @@
 #define SIN_PORT PORTB
 #define SIN_DDR  DDRB
 #define SIN_BIT  PB5
+#define GSCLK_PORT PORTD
+#define GSCLK_DDR  DDRD
+#define GSCLK_BIT  PB3
 
 // Events
 // Keep the events in a low register, for fast access
@@ -137,6 +140,20 @@ void init_blank_timer() {
 	TCCR1B |= _BV(CS10);
 }
 
+void init_gsclk() {
+	GSCLK_DDR |= _BV(GSCLK_BIT);
+
+	// Set GSCLK (OC2B) when TCNT2=1, clear on overflow.
+	TCCR2A = _BV(COM2B1) | _BV(COM2B0)
+	// Fast PWM mode, TOP=OCR2A.
+		| _BV(WGM21) | _BV(WGM20);
+	TCCR2B = _BV(WGM22);
+	// Set TOP
+	OCR2A = 1;
+	// Start timer, no prescaling
+	TCCR2B |= _BV(CS20);
+}
+
 void init_tlc_data() {
 	// Set MOSI and SCK to output.  I don't know if I need this, but it won't
 	// hurt.
@@ -172,6 +189,7 @@ int main(void) {
 	init_tlc_data();
 	init_serial();
 	init_blank_timer();
+	init_gsclk();
 	init_xlat();
 
 	// Send a test message
