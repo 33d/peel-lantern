@@ -60,7 +60,9 @@ void die(uint8_t status) {
 	// Turn off SPI, so we can control pin 13
 	SPCR &= ~_BV(SPE);
 	DDRB |= STATUS_LED;
-//	printf("Error:%02x\n", status);
+	// wait for the serial output buffer to clear
+	while (!(UCSR0A & _BV(UDRE0)));
+    UDR0 = '0' + status;
 	for (uint8_t j = 0; j < 10; j++) {
 		for (uint8_t i = 0; i < status; i++) {
 			PORTB |= STATUS_LED;
