@@ -153,6 +153,3 @@ setaddr: reset_arduino
 
 getaddr: reset_arduino
 	echo 'dump eeprom 0 1' | $(AVRDUDE) -t
-
-setfuse: reset_arduino
-	$(AVRDUDE) -Ulfuse:w:0:m
