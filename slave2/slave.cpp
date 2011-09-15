@@ -39,7 +39,7 @@
 #define SIN_BIT  PB5
 #define GSCLK_PORT PORTD
 #define GSCLK_DDR  DDRD
-#define GSCLK_BIT  PB3
+#define GSCLK_BIT  PD3
 #define SS_DDR DDRB
 #define SS_BIT PB2
 
