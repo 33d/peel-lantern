@@ -13,7 +13,7 @@
 #define enable_blank() (TCCR1A |= _BV(COM1B1))
 #define disable_blank() (TCCR1A &= ~_BV(COM1B1))
 
-#define id (SLAVE_ID << 4)
+#define id SLAVE_ID
 
 #if !defined(PEEL_BAUD)
 #error Define PEEL_BAUD first
@@ -95,7 +95,7 @@ static uint8_t read_data() {
 static void handle_data(uint8_t data) {
 	// Address byte
 	if (data & 1) {
-		if ((data ^ id) == 1) {
+		if ((data ^ (id << 4)) == 1) {
 			rx_count = 0;
 			events |= Event::receiving_data;
 		} else
@@ -193,7 +193,7 @@ int main(void) {
 	init_xlat();
 
 	// Send a test message
-	UDR0 = 'X';
+	UDR0 = id + 'a';
 
 	// Wait until here to enable the serial port, so data already on the
 	// line doesn't overflow the rx buffer
