@@ -126,8 +126,8 @@ void init_blank_timer() {
 	// Fast PWM mode, TOP=ICR1
 	TCCR1A = _BV(WGM11);
 	TCCR1B = _BV(WGM13) | _BV(WGM12);
-	// Blank every 4096 ticks
-	ICR1 = 4096;
+	// Blank every 4096 GSCLK cycles.  That runs at F_CPU/2.
+	ICR1 = 8192;
 	// Clear BLANK when timer=1
 	OCR1B = 1;
 	// Timer on
