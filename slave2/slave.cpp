@@ -40,6 +40,8 @@
 #define GSCLK_PORT PORTD
 #define GSCLK_DDR  DDRD
 #define GSCLK_BIT  PB3
+#define SS_DDR DDRB
+#define SS_BIT PB2
 
 // Events
 // Keep the events in a low register, for fast access
@@ -159,6 +161,9 @@ void init_tlc_data() {
 	// hurt.
 	SCK_DDR |= _BV(SCK_BIT);
 	SIN_DDR |= _BV(SIN_BIT);
+	// Set the SS pin as an output, because the chip tries fancy stuff if it's
+	// an input.  This is the same as BLANK, but let's not be too careful.
+	SS_DDR |= _BV(SS_BIT);
 
 	// Enable SPI, Master, set clock rate fck/2
 	SPCR = _BV(SPE) | _BV(MSTR);
