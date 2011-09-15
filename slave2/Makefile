@@ -35,7 +35,7 @@ AVRCPP         = avr-g++
 
 # Reserve register 5 for the receive interrupt handler
 CALLFLAGS      = -g -Wall $(OPTIMIZE) -mmcu=$(MCU_TARGET) \
-	-ffunction-sections -fdata-sections -ffixed-r5 \
+	-ffunction-sections -fdata-sections \
 	$(DEFS)
 	#-funsigned-char -funsigned-bitfields -fpack-struct -short-enums 
 override AVRCFLAGS        = $(CALLFLAGS) -std=gnu99  

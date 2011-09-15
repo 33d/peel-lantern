@@ -52,9 +52,6 @@
 namespace Event {
 	static const uint8_t receiving_data = _BV(1);
 };
-// Received data will go here for processing by the main loop.
-// (nothing seems to use r5...)
-volatile register uint8_t rx_data asm("r5");
 
 // How many bytes of data we've received for this row
 #define rx_count GPIOR0
