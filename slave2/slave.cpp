@@ -31,13 +31,10 @@
 #define BLANK_PORT PORTB
 #define BLANK_DDR  DDRB
 #define BLANK_BIT  PB2
-#define SCK_PORT PORTB
 #define SCK_DDR  DDRB
 #define SCK_BIT  PB3
-#define SIN_PORT PORTB
 #define SIN_DDR  DDRB
 #define SIN_BIT  PB5
-#define GSCLK_PORT PORTD
 #define GSCLK_DDR  DDRD
 #define GSCLK_BIT  PD3
 #define SS_DDR DDRB
