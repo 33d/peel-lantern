@@ -39,6 +39,12 @@
 #define GSCLK_BIT  PD3
 #define SS_DDR DDRB
 #define SS_BIT PB2
+#define SHIFT_CLOCK_PORT PORTC
+#define SHIFT_CLOCK_DDR  DDRC
+#define SHIFT_CLOCK_BIT  PC3
+#define SHIFT_DATA_PORT PORTC
+#define SHIFT_DATA_DDR  DDRC
+#define SHIFT_DATA_BIT  PC0
 
 // Events
 // Keep the events in a low register, for fast access
@@ -52,6 +58,9 @@ namespace Event {
 
 // How many bytes of data we've received for this row
 #define rx_count GPIOR0
+
+// the most recent address byte we've received
+uint8_t addr_byte;
 
 void die(uint8_t) __attribute__ ((noreturn));
 void die(uint8_t status) {
@@ -77,6 +86,25 @@ void die(uint8_t status) {
 	abort();
 }
 
+static void update_row(uint8_t addr_byte) {
+	uint8_t row = addr_byte & 0x0E;
+	// "row" is shifted left one, so double everything (this seems to be much
+	// faster than performing a shift on "row")
+	for (uint8_t i = 0; i < 16; i += 2) {
+		if (i == row) {
+			// The datasheet says that a 20ns pulse is adequate.  One
+			// instruction is 62ns, so I don't think we need any delays.
+			SHIFT_DATA_PORT &= ~_BV(SHIFT_DATA_BIT);
+			SHIFT_CLOCK_PORT |= _BV(SHIFT_CLOCK_BIT);
+			SHIFT_DATA_PORT |= _BV(SHIFT_DATA_BIT);
+			SHIFT_CLOCK_PORT &= ~_BV(SHIFT_CLOCK_BIT);
+		} else {
+			SHIFT_CLOCK_PORT |= _BV(SHIFT_CLOCK_BIT);
+			SHIFT_CLOCK_PORT &= ~_BV(SHIFT_CLOCK_BIT);
+		}
+	}
+}
+
 static uint8_t read_data() {
 	// Check for hardware buffer overflow
 	if (UCSR0A & _BV(DOR0))
@@ -91,7 +119,9 @@ static uint8_t read_data() {
 static void handle_data(uint8_t data) {
 	// Address byte
 	if (data & 1) {
-		if ((data ^ (id << 4)) == 1) {
+		// The top 4 bits of "data" contain the address... is this for us?
+		if (((data ^ (id << 4)) & 0xF0) == 0) {
+			addr_byte = data; // save the row, which is in this byte
 			rx_count = 0;
 			events |= Event::receiving_data;
 		} else
@@ -111,6 +141,7 @@ static void handle_data(uint8_t data) {
 			// and raise it
 			BLANK_PORT |= _BV(BLANK_BIT);
 			XLAT_PORT |= _BV(XLAT_BIT);
+			update_row(addr_byte);
 			events &= ~Event::receiving_data;
 			XLAT_PORT &= ~_BV(XLAT_BIT);
 			BLANK_PORT &= ~_BV(BLANK_BIT);
@@ -184,12 +215,20 @@ void init_serial() {
   ;
 }
 
+void init_shift_register() {
+	SHIFT_CLOCK_DDR |= _BV(SHIFT_CLOCK_BIT);
+	SHIFT_DATA_DDR |= _BV(SHIFT_DATA_BIT);
+	// leave the data line high
+	SHIFT_DATA_PORT |= _BV(SHIFT_DATA_BIT);
+}
+
 int main(void) {
 	init_tlc_data();
 	init_serial();
 	init_blank_timer();
 	init_gsclk();
 	init_xlat();
+	init_shift_register();
 
 	// Send a test message
 	UDR0 = id + 'a';

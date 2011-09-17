@@ -33,7 +33,6 @@ AVRCPP         = avr-g++
 
 # Override is only needed by avr-lib build system.
 
-# Reserve register 5 for the receive interrupt handler
 CALLFLAGS      = -g -Wall $(OPTIMIZE) -mmcu=$(MCU_TARGET) \
 	-ffunction-sections -fdata-sections \
 	$(DEFS)
