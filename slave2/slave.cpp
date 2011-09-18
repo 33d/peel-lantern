@@ -4,7 +4,8 @@
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 
-#define PEEL_BAUD 1000000
+#define PEEL_BAUD 2000000
+#define PEEL_U2X
 // #define PEEL_U2X
 #define STATUS_LED (_BV(5)) // arduino 13
 // Enable RX
@@ -219,7 +220,7 @@ void init_serial() {
   // TX enable. Don't turn on RX yet - wait until we're ready to receive
   UCSR0B = _BV(TXEN0);
   UCSR0A = 0
-#if defined(SERIAL_U2X)
+#if defined(PEEL_U2X)
 	| _BV(U2X0)
 #endif
   ;
