@@ -1,0 +1,44 @@
+= Communciation protocol =
+
+Each packet contains 97 bytes: 1 byte containing the slave ID and the row, and
+96 more containing the data as sent to the TLC chips.
+
+The slave chips do not perform any re-mapping - this must be perfomed on the
+host.
+
+Avoid sending data to the same slave chip twice in succession.  After a row is
+sent, the slave takes some time loading the shift register, and it might drop
+the data for that row.
+
+== Address byte  ==
+
+{{{  
+ |   Slave ID   |    Row    | 1
+  7   6   5   4   3   2   1   0
+}}}
+  
+The slave ID is the 4 bit slave number.  The row is the row number, as sent
+to the shift register.  The lowest bit is always 1.
+
+== Data ==
+
+The data is 96 bytes, exactly as sent to the TLCs, so the bit most distant
+from the harvester board is sent first.  You must send data for all 16 lines
+on each TLC, even though we only use 12.
+
+The lowest bit of each byte must be 0.  The data are not shifted; we simply
+lose any values that may have a 1 in that position.  This means we lose one
+bit for even rows and two for odd rows.  Since odd rows lose their 4th bit, 
+this might be noticeable; we'll have to try it and see.
+
+= Errors =
+
+Errors are reported using the status LED on the Arduinos.  The LED will flash
+a number of times, followed by a longer delay.  After this happens 10 times,
+the board resets.
+
+{{{
+ Flashes   Problem
+   2         Hardware serial buffer overflow
+   4         SPI output too slow
+}}}
