@@ -115,6 +115,13 @@ static uint8_t read_data() {
 	return UDR0;
 }
 
+// Throws away any data in the receive buffer, to clear the data overrun flag
+static void clear_rx() {
+	uint8_t temp;
+	while (UCSR0A & _BV(RXC0))
+		temp = UDR0;
+}
+
 // the "static" seems to inline this function
 static void handle_data(uint8_t data) {
 	// Address byte
@@ -146,6 +153,9 @@ static void handle_data(uint8_t data) {
 			XLAT_PORT &= ~_BV(XLAT_BIT);
 			BLANK_PORT &= ~_BV(BLANK_BIT);
 			enable_blank();
+			// Loading the shift register takes a while, and it might have
+			// overflowed.  Get rid of any data and clear the error.
+			clear_rx();
 		}
 	}
 }
