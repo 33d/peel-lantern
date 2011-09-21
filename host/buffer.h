@@ -13,25 +13,37 @@ private:
 	const std::set<int> skip_cols;
 	const int rows;
 	const int cols;
-	std::vector<uint8_t> const buf;
+	const int out_rows;
+	const int out_cols;
+	const int harvester_bytes;
+	const int tlc_start; // inclusive
+	const int tlc_end; // exclusive
+	const int harvesters_per_row;
+	const int tlcs_per_harvester;
+	/** The data buffer, as sent to the slaves*/
+	std::vector<uint8_t> buf;
 
 public:
 	Buffer(int cols, int rows,
 			std::initializer_list<int> skip_cols,
 			std::initializer_list<int> skip_rows);
 
-friend class BufferWriter;
+friend class BufferOutput;
+#if defined(CPPUNIT_ASSERT)
+friend class BufferTest;
+#endif
 };
 
-class BufferWriter {
+class BufferOutput {
 private:
-	Buffer const& buffer;
+	const Buffer & buffer;
+	int pos;
 public:
-	BufferWriter(Buffer& buffer) : buffer(buffer) {}
+	BufferOutput(const Buffer& buffer) : buffer(buffer), pos(0) {}
 	/**
-	 * Writes as much of the TLC buffer to some file descriptor as possible.
+	 * Writes as much of the TLC buffer as possible to some file descriptor.
 	 */
-	ssize_t write(int fd) const;
+	ssize_t write(int fd);
 };
 
 #endif /* BUFFER_H_ */
