@@ -1,4 +1,4 @@
-OBJECTS      = buffer.o
+OBJECTS      = buffer.o lookup.o
 TEST_OBJECTS = buffertest.o test.o
 
 CPPFLAGS     = -std=c++0x

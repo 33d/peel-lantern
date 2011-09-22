@@ -45,6 +45,7 @@ private:
 	std::vector<uint8_t> buf;
 	template <class It> void addHalfRow(It start, It end);
 	bool second_half_row;
+	static int lookup[];
 public:
 	BufferInput(Buffer& buf) : in_row(0), in_col(0), buffer(buf),
 		second_half_row(false), out_row(0) {}
