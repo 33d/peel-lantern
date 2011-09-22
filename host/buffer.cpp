@@ -82,6 +82,12 @@ template <class It> void BufferInput::addHalfRow(It start, It end) {
 			pos += (16 - buffer.tlc_end + buffer.tlc_start) * 3 / 2;
 		}
 	}
+
+	if (second_half_row) {
+		++out_row;
+		if (out_row > buffer.out_rows)
+			out_row = 0;
+	}
 }
 
 ssize_t BufferOutput::write(int fd) {
