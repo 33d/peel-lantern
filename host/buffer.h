@@ -40,13 +40,14 @@ class BufferInput {
 private:
 	int in_row;
 	int in_col;
+	int out_row;
 	Buffer& buffer;
 	std::vector<uint8_t> buf;
 	template <class It> void addHalfRow(It start, It end);
 	bool second_half_row;
 public:
 	BufferInput(Buffer& buf) : in_row(0), in_col(0), buffer(buf),
-		second_half_row(false) {}
+		second_half_row(false), out_row(0) {}
 	template <class It> void addData(It start, It end);
 };
 

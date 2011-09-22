@@ -53,8 +53,35 @@ template <class It> void BufferInput::addData(It start, It end) {
 	}
 }
 
-template <class It> void addHalfRow(It start, It end) {
+template <class It> void BufferInput::addHalfRow(It start, It end) {
+	// 97 bytes in the output buffer for a half-row
+	uint8_t* pos = &buffer.buf[out_row * 97 * 2];
+	if (second_half_row)
+		pos += 97;
+	int col = buffer.tlc_start;
+	// position "pos" at the first TLC column
+	pos += buffer.tlc_start;
+	for (It i = start; i < end; i++) {
+		uint16_t val = lookup[*i];
+		if (col & 1) { // an odd column
+			*pos |= val >> 8;
+			++pos;
+			*pos = (uint8_t) val;
+			++pos;
+		} else { // an even column
+			*pos = val >> 4;
+			++pos;
+			*pos = (val & 0xF) << 4;
+		}
 
+		++col;
+		// have we reached the end of this TLC?
+		if ((col & 0x0F) >= buffer.tlc_end) {
+			// advance to the next TLC
+			col = (col & ~0xF) + 16 + buffer.tlc_start;
+			pos += (16 - buffer.tlc_end + buffer.tlc_start) * 3 / 2;
+		}
+	}
 }
 
 ssize_t BufferOutput::write(int fd) {
