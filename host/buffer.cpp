@@ -25,6 +25,38 @@ Buffer::Buffer(int cols, int rows,
 	}
 }
 
+template <class It> void BufferInput::addData(It start, It end) {
+	for (It i = start; i < end; i++) {
+		// Are we supposed to ignore this row?
+		if (!buffer.skip_cols.count(in_col))
+			buf.push_back(*i);
+		++in_col;
+		// do we have an entire half-row?
+		if (buf.size() >= 48) {
+			// is this a second half-row? If not, we need to load it backwards
+			if (second_half_row) {
+				// Are we supposed to skip this row?
+				if (!buffer.skip_rows.count(in_row))
+					addHalfRow(buf.begin(), buf.end());
+				// Advance the current row
+				++in_row;
+				if (in_row > buffer.rows)
+					in_row = 0;
+				in_col = 0;
+			} else
+				// Are we supposed to skip this row?
+				if (!buffer.skip_rows.count(in_row))
+					addHalfRow(buf.rbegin(), buf.rend());
+			buf.clear();
+			second_half_row = !second_half_row;
+		}
+	}
+}
+
+template <class It> void addHalfRow(It start, It end) {
+
+}
+
 ssize_t BufferOutput::write(int fd) {
 	ssize_t count = pos - buffer.buf.size();
 	ssize_t written = ::write(fd, buffer.buf.data(), count);

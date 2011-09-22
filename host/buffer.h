@@ -6,6 +6,7 @@
 #include <set>
 #include <vector>
 #include <initializer_list>
+#include <functions>
 
 class Buffer {
 private:
@@ -29,9 +30,25 @@ public:
 			std::initializer_list<int> skip_rows);
 
 friend class BufferOutput;
+friend class BufferInput;
+
 #if defined(CPPUNIT_ASSERT)
 friend class BufferTest;
 #endif
+};
+
+class BufferInput {
+private:
+	int in_row;
+	int in_col;
+	Buffer& buffer;
+	std::vector<uint8_t> buf;
+	template <class It> void addHalfRow(It start, It end);
+	bool second_half_row;
+public:
+	BufferInput(Buffer& buf) : in_row(0), in_col(0), buffer(buf),
+		second_half_row(false) {}
+	template <class It> void addData(It start, It end);
 };
 
 class BufferOutput {
