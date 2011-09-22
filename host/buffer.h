@@ -6,7 +6,6 @@
 #include <set>
 #include <vector>
 #include <initializer_list>
-#include <functions>
 
 class Buffer {
 private:
