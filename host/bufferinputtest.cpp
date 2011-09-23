@@ -20,17 +20,18 @@ public:
 	void testFirstRow() {
 		Buffer buf(32, 32, {}, {});
 		BufferInput input(buf);
-		// Load the row with alternating FF and 0
-		uint8_t data[] = { 0xFF, 0 };
-		for (int i = 0; i < 48; i++)
-			input.addData(data, data+2);
+		// Add a single FF at the left
+		std::vector<uint8_t> data(96);
+		data[0] = 0xFF;
+		data[48] = 0xFF;
+		input.addData(data.begin(), data.end());
 
 		// The top left should be 0xFF
 		int val = BufferInput::lookup[0xFF];
 		// the first row gets skipped
 		CPPUNIT_ASSERT_EQUAL(0, (int) buf.buf[96]);
-		CPPUNIT_ASSERT_EQUAL((val & 0x0F) << 4, (int) buf.buf[95]);
-		CPPUNIT_ASSERT_EQUAL(val >> 4, (int) buf.buf[94]);
+		CPPUNIT_ASSERT_EQUAL(val >> 8, (int) buf.buf[95]);
+		CPPUNIT_ASSERT_EQUAL(val & 0xFF, (int) buf.buf[94]);
 
 		// now the right half-row, this is shifted in from the right
 		// we start from an even row

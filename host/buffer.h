@@ -99,29 +99,28 @@ template <class It> void BufferInput::addData(It start, It end) {
 template <class It> void BufferInput::addHalfRow(const It start) {
 	// 97 bytes in the output buffer for a half-row
 	int pos = out_row * 97 * 2;
-	if (second_half_row)
-		pos += 97;
-	// skip the header byte
-	++pos;
 	if (second_half_row) {
 		// A right half-row.  The data in memory is in the same order as it
 		// appears on the lantern.
-		int col = buffer.tlc_start;
+		pos += 97;
+		int col = (16 - buffer.tlc_end) * 3 / 2;
 		pos += col;
-		loadHalfRow(start, buffer.buf.begin() + pos, col);
+		// skip the header byte
+		++pos;
+		loadHalfRow(start, buffer.buf.begin() + pos, buffer.tlc_start);
 
 		// go to the next row
 		++out_row;
 		if (out_row > buffer.out_rows)
 			out_row = 0;
 	} else {
-		// A right half-row.  The data in memory is the reverse of how it
+		// A left half-row.  The data in memory is the reverse of how it
 		// appears on the lantern.
-		int col = buffer.tlc_end;
-		pos += col;
+		int col = buffer.tlc_start * 3 / 2;
 		// start at the end of the row
 		pos += 96;
-		loadHalfRow(start, buffer.buf.rend() - 1 - pos, col);
+		pos -= col;
+		loadHalfRow(start, buffer.buf.rend() - 1 - pos, buffer.tlc_start);
 	}
 }
 
