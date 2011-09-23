@@ -3,6 +3,8 @@ TEST_OBJECTS = test.o
 
 CPPFLAGS     = -std=c++0x -g
 
+.PHONY: test
+
 all: test
 
 test: $(OBJECTS) $(TEST_OBJECTS)
