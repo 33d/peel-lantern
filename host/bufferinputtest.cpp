@@ -6,21 +6,16 @@
 #include <algorithm>
 #include "buffer.h"
 
+#include <cppunit/extensions/HelperMacros.h>
+
 class BufferInputTest : public CppUnit::TestFixture  {
 private:
+	CPPUNIT_TEST_SUITE(BufferInputTest);
+	CPPUNIT_TEST(testFirstRow);
+	CPPUNIT_TEST(testFirstRowWithSkips);
+	CPPUNIT_TEST_SUITE_END();
 
 public:
-	static CppUnit::Test *suite() {
-		CppUnit::TestSuite *suite = new CppUnit::TestSuite("BufferTest");
-		suite->addTest(new CppUnit::TestCaller<BufferInputTest>(
-				"testFirstRow",
-				&BufferInputTest::testFirstRow) );
-		suite->addTest(new CppUnit::TestCaller<BufferInputTest>(
-				"testFirstRowWithSkips",
-				&BufferInputTest::testFirstRowWithSkips) );
-		return suite;
-	}
-
 	void testFirstRow() {
 		Buffer buf(32, 32, {}, {});
 		BufferInput input(buf);
@@ -67,3 +62,5 @@ public:
 		CPPUNIT_ASSERT_EQUAL(aa >> 4, (int) buf.buf[90]);
 	}
 };
+
+CPPUNIT_TEST_SUITE_REGISTRATION(BufferInputTest);

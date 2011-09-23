@@ -4,8 +4,9 @@
 
 int main(int argc, char **argv) {
 	CppUnit::TextUi::TestRunner runner;
-	runner.addTest(BufferTest::suite());
-	runner.addTest(BufferInputTest::suite());
+	CppUnit::TestFactoryRegistry &registry
+		= CppUnit::TestFactoryRegistry::getRegistry();
+	runner.addTest(registry.makeTest());
 	runner.run();
 	return 0;
 }

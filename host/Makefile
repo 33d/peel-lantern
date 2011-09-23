@@ -1,5 +1,5 @@
 OBJECTS      = buffer.o lookup.o
-TEST_OBJECTS = test.o
+TEST_OBJECTS = buffertest.o bufferinputtest.o test.o
 
 CPPFLAGS     = -std=c++0x -g
 
