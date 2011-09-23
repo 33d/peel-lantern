@@ -8,8 +8,8 @@
 Buffer::Buffer(int cols, int rows,
 		std::initializer_list<int> skip_cols,
 		std::initializer_list<int> skip_rows) :
-		skip_rows(skip_rows),
-		skip_cols(skip_cols),
+		skip_rows(skip_rows.begin(), skip_rows.end()),
+		skip_cols(skip_cols.begin(), skip_cols.end()),
 		rows(rows), cols(cols),
 		tlc_start(1), tlc_end(13),
 		out_cols(cols - skip_cols.size()),

@@ -3,6 +3,7 @@
 #include <cppunit/TestAssert.h>
 #include <cppunit/TestSuite.h>
 #include <cstdio>
+#include <algorithm>
 #include "buffer.h"
 
 class BufferInputTest : public CppUnit::TestFixture  {
@@ -14,6 +15,9 @@ public:
 		suite->addTest(new CppUnit::TestCaller<BufferInputTest>(
 				"testFirstRow",
 				&BufferInputTest::testFirstRow) );
+		suite->addTest(new CppUnit::TestCaller<BufferInputTest>(
+				"testFirstRowWithSkips",
+				&BufferInputTest::testFirstRowWithSkips) );
 		return suite;
 	}
 
@@ -39,5 +43,27 @@ public:
 		CPPUNIT_ASSERT_EQUAL(val >> 8, (int) buf.buf[102]);
 		CPPUNIT_ASSERT_EQUAL(val & 0xFF, (int) buf.buf[103]);
 		CPPUNIT_ASSERT_EQUAL(0, (int) buf.buf[104]);
+	}
+
+	void testFirstRowWithSkips() {
+		Buffer buf(36, 32, { 2, 5, 48, 49 }, {});
+		CPPUNIT_ASSERT_EQUAL(4, (int) buf.skip_cols.size());
+		BufferInput input(buf);
+
+		std::vector<uint8_t> data(96);
+		for (int i = 0; i < 96; ) {
+			data[i++] = 0xAA;
+			data[i++] = 0x66;
+		}
+		input.addData(data.begin(), data.end());
+
+		int aa = BufferInput::lookup[0xaa];
+		int ss = BufferInput::lookup[0x66];
+
+		// row 1
+		CPPUNIT_ASSERT_EQUAL(ss >> 4, (int) buf.buf[93]);
+		// The bottom nibble is undefined, because that row is skipped
+		CPPUNIT_ASSERT_EQUAL((ss & 0x0F) << 4, (int) buf.buf[92] & 0xF0);
+		CPPUNIT_ASSERT_EQUAL(aa >> 4, (int) buf.buf[90]);
 	}
 };
