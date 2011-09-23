@@ -1,7 +1,9 @@
 OBJECTS      = buffer.o lookup.o
-TEST_OBJECTS = buffertest.o test.o
+TEST_OBJECTS = buffertest.o bufferinputtest.o test.o
 
-CPPFLAGS     = -std=c++0x
+CPPFLAGS     = -std=c++0x -g
+
+all: test
 
 test: $(OBJECTS) $(TEST_OBJECTS)
 	$(CC) $(LDFLAGS) $(LOADLIBES) $(LDLIBS) -lcppunit -o test \
