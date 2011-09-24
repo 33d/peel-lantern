@@ -26,8 +26,8 @@ Buffer::Buffer(int cols, int rows,
 }
 
 ssize_t BufferOutput::write(int fd) {
-	ssize_t count = pos - buffer.buf.size();
-	ssize_t written = ::write(fd, buffer.buf.data() + count, count);
+	ssize_t count = buffer.buf.size() - pos;
+	ssize_t written = ::write(fd, buffer.buf.data() + pos, count);
 	pos += written;
 	if (pos >= buffer.buf.size())
 		pos = 0;
