@@ -45,7 +45,7 @@ private:
 	int out_row;
 	Buffer& buffer;
 	std::vector<uint8_t> buf;
-	template <class It> void addHalfRow(const It start);
+	template <class It> void addHalfRow(const It& start);
 	template <class InIt, class OutIt>
 		void loadHalfRow(const InIt& start, const OutIt& pos, int startCol);
 	bool second_half_row;
@@ -53,7 +53,7 @@ private:
 public:
 	BufferInput(Buffer& buf) : in_row(0), in_col(0), buffer(buf),
 		second_half_row(false), out_row(0) {}
-	template <class It> void addData(It start, It end);
+	template <class It> void addData(const It start, const It end);
 
 #if defined(CPPUNIT_ASSERT)
 friend class BufferInputTest;
@@ -72,7 +72,7 @@ public:
 	ssize_t write(int fd);
 };
 
-template <class It> void BufferInput::addData(It start, It end) {
+template <class It> void BufferInput::addData(const It start, const It end) {
 	for (It i = start; i < end; i++) {
 		// Are we supposed to ignore this row?
 		if (!buffer.skip_cols.count(in_col))
@@ -96,7 +96,7 @@ template <class It> void BufferInput::addData(It start, It end) {
 	}
 }
 
-template <class It> void BufferInput::addHalfRow(const It start) {
+template <class It> void BufferInput::addHalfRow(const It& start) {
 	// 97 bytes in the output buffer for a half-row
 	int pos = out_row * 97 * 2;
 	if (second_half_row) {
