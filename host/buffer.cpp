@@ -17,7 +17,7 @@ Buffer::Buffer(int cols, int rows,
 		harvesters_per_row(2),
 		tlcs_per_harvester(4),
 		harvester_bytes(97),
-		buf((out_cols * out_rows) + (out_rows * harvesters_per_row)) {
+		buf(out_rows * harvesters_per_row * harvester_bytes) {
 	// Initialize the headers
 	for (int i = 0; i < out_rows; i++) {
 		buf[(i * 2) * harvester_bytes] = (((i / 8) * 2) << 4) | ((i % 8) << 1) | 1;
