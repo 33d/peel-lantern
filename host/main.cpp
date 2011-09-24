@@ -1,7 +1,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <algorithm>
 #include <errno.h>
 #include "buffer.h"
@@ -18,9 +17,6 @@ int main(void) {
 	BufferInput bufIn(buf);
 	BufferOutput bufOut(buf);
 	uint8_t data[36 * 35];
-	// Set stdin and stdout as non-blocking
-	fcntl(STDIN_FILENO, F_SETFD, fcntl(STDIN_FILENO, F_GETFD) | O_NONBLOCK);
-	fcntl(STDOUT_FILENO, F_SETFD, fcntl(STDOUT_FILENO, F_GETFD) | O_NONBLOCK);
 	int nfds = std::max(STDIN_FILENO, STDOUT_FILENO) + 1;
 
 	fd_set in, out;
