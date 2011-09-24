@@ -1,20 +1,19 @@
 PROJECT      = peel-translate
-NOTEST_OBJECTS = main.o
 OBJECTS      = buffer.o lookup.o
-TEST_OBJECTS = buffertest.o bufferinputtest.o test.o
+PROJECT_OBJECTS = main.o $(OBJECTS)
+TEST_OBJECTS = buffertest.o bufferinputtest.o test.o $(OBJECTS)
 
-CPPFLAGS     = -std=c++0x -g
+CPPFLAGS    += -std=c++0x -g
 
 .PHONY: test
 
 all: test $(PROJECT)
 
-$(PROJECT): $(OBJECTS) $(NOTEST_OBJECTS)
-	$(CXX) $(LDFLAGS) $(LOADLIBES) $(LDLIBS) -o $(PROJECT) $(OBJECTS) $(NOTEST_OBJECTS)
+$(PROJECT): $(PROJECT_OBJECTS)
+	$(CXX) $(LDFLAGS) $(LOADLIBES) $(LDLIBS) -o $(PROJECT) $(PROJECT_OBJECTS)
 
 test: $(OBJECTS) $(TEST_OBJECTS)
-	$(CC) $(LDFLAGS) $(LOADLIBES) $(LDLIBS) -lcppunit -o test \
-		$(OBJECTS) $(TEST_OBJECTS)
+	$(CXX) $(LDFLAGS) $(LOADLIBES) $(LDLIBS) -lcppunit -o test $(TEST_OBJECTS)
 	./test
 
 clean:
