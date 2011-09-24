@@ -1,6 +1,5 @@
 #include <cppunit/ui/text/TestRunner.h>
-#include "buffertest.cpp"
-#include "bufferinputtest.cpp"
+#include <cppunit/extensions/HelperMacros.h>
 
 int main(int argc, char **argv) {
 	CppUnit::TextUi::TestRunner runner;
