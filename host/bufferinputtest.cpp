@@ -29,14 +29,14 @@ public:
 		int val = BufferInput::lookup[0xFF];
 		// the first row gets skipped
 		CPPUNIT_ASSERT_EQUAL(0, (int) buf.buf[96]);
-		CPPUNIT_ASSERT_EQUAL(val >> 8, (int) buf.buf[95]);
-		CPPUNIT_ASSERT_EQUAL(val & 0xFF, (int) buf.buf[94]);
+		CPPUNIT_ASSERT_EQUAL((val >> 8) & 0xFE, (int) buf.buf[95]);
+		CPPUNIT_ASSERT_EQUAL(val & 0xFE, (int) buf.buf[94]);
 
 		// now the right half-row, this is shifted in from the right
 		// we start from an even row
 		CPPUNIT_ASSERT_EQUAL(0, (int) buf.buf[101]);
-		CPPUNIT_ASSERT_EQUAL(val >> 8, (int) buf.buf[102]);
-		CPPUNIT_ASSERT_EQUAL(val & 0xFF, (int) buf.buf[103]);
+		CPPUNIT_ASSERT_EQUAL((val >> 8) & 0xFE, (int) buf.buf[102]);
+		CPPUNIT_ASSERT_EQUAL(val & 0xFE, (int) buf.buf[103]);
 		CPPUNIT_ASSERT_EQUAL(0, (int) buf.buf[104]);
 	}
 
@@ -56,10 +56,10 @@ public:
 		int ss = BufferInput::lookup[0x66];
 
 		// row 1
-		CPPUNIT_ASSERT_EQUAL(ss >> 4, (int) buf.buf[93]);
+		CPPUNIT_ASSERT_EQUAL((ss >> 4) & 0xFE, (int) buf.buf[93]);
 		// Skip the AA in row 2
-		CPPUNIT_ASSERT_EQUAL((ss & 0x0F) << 4 | (ss >> 8), (int) buf.buf[92]);
-		CPPUNIT_ASSERT_EQUAL(ss & 0xFF, (int) buf.buf[91]);
+		CPPUNIT_ASSERT_EQUAL((ss & 0x0F) << 4 | ((ss >> 8) & 0xFE), (int) buf.buf[92]);
+		CPPUNIT_ASSERT_EQUAL(ss & 0xFE, (int) buf.buf[91]);
 	}
 };
 

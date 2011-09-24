@@ -131,12 +131,14 @@ template <class InIt, class OutIt>
 	for (InIt i = start; i < start + 48; i++) {
 		uint16_t val = lookup[*i];
 		if (col & 1) { // an odd column
-			*pos |= val >> 8;
+			// remember to clear the low bit, otherwise the slave thinks this
+			// is an address
+			*pos |= (val >> 8) & 0xFE;
 			++pos;
-			*pos = (uint8_t) val;
+			*pos = (uint8_t) val & 0xFE;
 			++pos;
 		} else { // an even column
-			*pos = val >> 4;
+			*pos = (val >> 4) & 0xFE;
 			++pos;
 			*pos = (val & 0xF) << 4;
 		}
