@@ -57,9 +57,9 @@ public:
 
 		// row 1
 		CPPUNIT_ASSERT_EQUAL(ss >> 4, (int) buf.buf[93]);
-		// The bottom nibble is undefined, because that row is skipped
-		CPPUNIT_ASSERT_EQUAL((ss & 0x0F) << 4, (int) buf.buf[92] & 0xF0);
-		CPPUNIT_ASSERT_EQUAL(aa >> 4, (int) buf.buf[90]);
+		// Skip the AA in row 2
+		CPPUNIT_ASSERT_EQUAL((ss & 0x0F) << 4 | (ss >> 8), (int) buf.buf[92]);
+		CPPUNIT_ASSERT_EQUAL(ss & 0xFF, (int) buf.buf[91]);
 	}
 };
 
