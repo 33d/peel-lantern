@@ -28,6 +28,7 @@ public:
 	Buffer(int cols, int rows,
 			std::initializer_list<int> skip_cols,
 			std::initializer_list<int> skip_rows);
+	std::vector<uint8_t>::iterator row_start(int tlc, int row);
 
 friend class BufferOutput;
 friend class BufferInput;
@@ -44,6 +45,8 @@ private:
 	int in_col;
 	int out_row;
 	Buffer& buffer;
+	/** How many 8-bit input values make a half row */
+	const int input_half_row;
 	std::vector<uint8_t> buf;
 	template <class It> void addHalfRow(const It& start);
 	template <class InIt, class OutIt>
@@ -52,7 +55,8 @@ private:
 	static int lookup[];
 public:
 	BufferInput(Buffer& buf) : in_row(0), in_col(0), buffer(buf),
-		second_half_row(false), out_row(0) {}
+		second_half_row(false), out_row(0),
+		input_half_row((buffer.cols - buffer.skip_cols.size()) / 2) {}
 	template <class It> void addData(const It start, const It end);
 
 #if defined(CPPUNIT_ASSERT)
@@ -79,7 +83,7 @@ template <class It> void BufferInput::addData(const It start, const It end) {
 			buf.push_back(*i);
 		++in_col;
 		// do we have an entire half-row?
-		if (buf.size() >= 48) {
+		if (buf.size() >= input_half_row) {
 			// Are we supposed to skip this row?
 			if (!buffer.skip_rows.count(in_row))
 				addHalfRow(buf.begin());
@@ -97,30 +101,33 @@ template <class It> void BufferInput::addData(const It start, const It end) {
 }
 
 template <class It> void BufferInput::addHalfRow(const It& start) {
-	// 97 bytes in the output buffer for a half-row
-	int pos = out_row * 97 * 2;
+	int tlc = out_row / 2 * 8 + (second_half_row ? 1 : 0);
+	int row = out_row % 8;
+	std::vector<uint8_t>::iterator pos = buffer.row_start(tlc, row);
 	if (second_half_row) {
 		// A right half-row.  The data in memory is in the same order as it
 		// appears on the lantern.
-		pos += 97;
 		int col = (16 - buffer.tlc_end) * 3 / 2;
 		pos += col;
 		// skip the header byte
 		++pos;
-		loadHalfRow(start, buffer.buf.begin() + pos, buffer.tlc_start);
+		loadHalfRow(start, pos, buffer.tlc_start);
 
 		// go to the next row
 		++out_row;
-		if (out_row > buffer.out_rows)
+		if (out_row >= buffer.out_rows)
 			out_row = 0;
 	} else {
 		// A left half-row.  The data in memory is the reverse of how it
 		// appears on the lantern.
-		int col = buffer.tlc_start * 3 / 2;
-		// start at the end of the row
-		pos += 96;
-		pos -= col;
-		loadHalfRow(start, buffer.buf.rend() - 1 - pos, buffer.tlc_start);
+		// Start at the beginning of the next row (reverse_iterator points to the
+		// element BEFORE the one you give it)
+		pos += 97;
+		// skip the start of the row
+		pos -= buffer.tlc_start * 3 / 2;
+		std::printf("%02d %02d %03d\n", tlc, row,
+				pos - buffer.buf.begin());
+		loadHalfRow(start, std::vector<uint8_t>::reverse_iterator(pos), buffer.tlc_start);
 	}
 }
 
@@ -128,7 +135,7 @@ template <class InIt, class OutIt>
 	void BufferInput::loadHalfRow(const InIt& start, const OutIt& it, int startCol) {
 	OutIt pos(it);
 	int col = startCol;
-	for (InIt i = start; i < start + 48; i++) {
+	for (InIt i = start; i < start + input_half_row; i++) {
 		uint16_t val = lookup[*i];
 		if (col & 1) { // an odd column
 			// remember to clear the low bit, otherwise the slave thinks this
