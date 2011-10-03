@@ -132,8 +132,6 @@ template <class It> void BufferInput::addHalfRow(const It& start) {
 		pos += 97;
 		// skip the start of the row
 		pos -= buffer.tlc_start * 3 / 2;
-		std::printf("%02d %02d %03d\n", tlc, row,
-				pos - buffer.buf.begin());
 		loadHalfRow(start, std::vector<uint8_t>::reverse_iterator(pos), buffer.tlc_start);
 	}
 }
