@@ -13,7 +13,9 @@ void check_errno(const char* function) {
 }
 
 int main(void) {
-	Buffer buf(36, 35, { 4, 13, 22, 31 }, { 8, 17, 26 });
+	Buffer buf(36, 35, { 4, 13, 22, 31 }, { 8, 17, 26 },
+			{ 3, 2, 1, 0, 7, 6, 5, 4 },
+			{ 4, 5, 6, 7, 0, 1, 2, 3 });
 	BufferInput bufIn(buf);
 	BufferOutput bufOut(buf);
 	uint8_t data[36 * 35];
