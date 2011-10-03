@@ -6,6 +6,7 @@
 #include <set>
 #include <vector>
 #include <initializer_list>
+#include <array>
 #include <cstdio>
 
 class Buffer {
@@ -23,11 +24,15 @@ private:
 	const int tlcs_per_harvester;
 	/** The data buffer, as sent to the slaves*/
 	std::vector<uint8_t> buf;
+	const std::vector<int> row_mapping_even;
+	const std::vector<int> row_mapping_odd;
 
 public:
 	Buffer(int cols, int rows,
 			std::initializer_list<int> skip_cols,
-			std::initializer_list<int> skip_rows);
+			std::initializer_list<int> skip_rows,
+			std::initializer_list<int> = std::initializer_list<int>({ 0, 1, 2, 3, 4, 5, 6, 7 }),
+			std::initializer_list<int> = std::initializer_list<int>({ 0, 1, 2, 3, 4, 5, 6, 7 }));
 	std::vector<uint8_t>::iterator row_start(int tlc, int row);
 
 friend class BufferOutput;
@@ -103,6 +108,8 @@ template <class It> void BufferInput::addData(const It start, const It end) {
 template <class It> void BufferInput::addHalfRow(const It& start) {
 	int tlc = out_row / 2 * 8 + (second_half_row ? 1 : 0);
 	int row = out_row % 8;
+	// convert this to the mapped row
+	row = second_half_row ? buffer.row_mapping_odd[row] : buffer.row_mapping_even[row];
 	std::vector<uint8_t>::iterator pos = buffer.row_start(tlc, row);
 	if (second_half_row) {
 		// A right half-row.  The data in memory is in the same order as it

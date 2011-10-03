@@ -18,7 +18,9 @@ static std::set<int> create_skips(std::initializer_list<int> list) {
 
 Buffer::Buffer(int cols, int rows,
 		std::initializer_list<int> skip_cols,
-		std::initializer_list<int> skip_rows) :
+		std::initializer_list<int> skip_rows,
+		std::initializer_list<int> row_mapping_even,
+		std::initializer_list<int> row_mapping_odd) :
 		skip_rows(create_skips(skip_rows)),
 		skip_cols(create_skips(skip_cols)),
 		rows(rows), cols(cols * 3),
@@ -28,7 +30,9 @@ Buffer::Buffer(int cols, int rows,
 		harvesters_per_row(2),
 		tlcs_per_harvester(4),
 		harvester_bytes(97),
-		buf(out_rows * harvesters_per_row * harvester_bytes) {
+		buf(out_rows * harvesters_per_row * harvester_bytes),
+		row_mapping_odd(row_mapping_odd),
+		row_mapping_even(row_mapping_even) {
 	// Initialize the headers
 	for (int i = 0; i < out_rows; i++) {
 		buf[(i * 2) * harvester_bytes] = (((i*2) % 8) << 4) | ((i / 4) << 1) | 1;
