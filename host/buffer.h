@@ -57,7 +57,7 @@ private:
 	template <class InIt, class OutIt>
 		void loadHalfRow(const InIt& start, const OutIt& pos, int startCol);
 	bool second_half_row;
-	static int lookup[];
+	static const int lookup[];
 public:
 	BufferInput(Buffer& buf) : in_row(0), in_col(0), buffer(buf),
 		second_half_row(false), out_row(0),

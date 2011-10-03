@@ -109,7 +109,7 @@ public:
 
 		// check the last pixel of the first row, which is at the start of the buffer
 		auto it = buf.buf.begin() + 1 /* header */ + 3;
-		int* l = BufferInput::lookup;
+		const int* l = BufferInput::lookup;
 		CPPUNIT_ASSERT_EQUAL(0, (int) *it++);
 		CPPUNIT_ASSERT_EQUAL((l[53] << 4) & 0xFE, (int) *it++);
 		CPPUNIT_ASSERT_EQUAL((l[53] >> 4) & 0xFE, (int) *it++);

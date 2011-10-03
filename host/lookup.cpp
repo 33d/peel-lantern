@@ -1,7 +1,7 @@
 #include "buffer.h"
 
 // The pixel value -> TLC value lookup.  Calculated using create_brightness.py.
-int BufferInput::lookup[] = {
+const int BufferInput::lookup[] = {
 	       0,    0,    0,    0,    0,    0,    0,    0,
 	       0,    0,    0,    0,    0,    0,    0,    0,
 	       1,    1,    1,    1,    1,    2,    2,    2,
