@@ -29,10 +29,10 @@ private:
 
 public:
 	Buffer(int cols, int rows,
-			std::initializer_list<int> skip_cols,
-			std::initializer_list<int> skip_rows,
-			std::initializer_list<int> = std::initializer_list<int>({ 0, 1, 2, 3, 4, 5, 6, 7 }),
-			std::initializer_list<int> = std::initializer_list<int>({ 0, 1, 2, 3, 4, 5, 6, 7 }));
+			std::initializer_list<int> const& skip_cols,
+			std::initializer_list<int> const& skip_rows,
+			std::initializer_list<int> const& = std::initializer_list<int>({ 0, 1, 2, 3, 4, 5, 6, 7 }),
+			std::initializer_list<int> const& = std::initializer_list<int>({ 0, 1, 2, 3, 4, 5, 6, 7 }));
 	std::vector<uint8_t>::iterator row_start(int tlc, int row);
 
 friend class BufferOutput;

@@ -17,10 +17,10 @@ static std::set<int> create_skips(std::initializer_list<int> list) {
 }
 
 Buffer::Buffer(int cols, int rows,
-		std::initializer_list<int> skip_cols,
-		std::initializer_list<int> skip_rows,
-		std::initializer_list<int> row_mapping_even,
-		std::initializer_list<int> row_mapping_odd) :
+		std::initializer_list<int> const& skip_cols,
+		std::initializer_list<int> const& skip_rows,
+		std::initializer_list<int> const& row_mapping_even,
+		std::initializer_list<int> const& row_mapping_odd) :
 		skip_rows(create_skips(skip_rows)),
 		skip_cols(create_skips(skip_cols)),
 		rows(rows), cols(cols * 3),
