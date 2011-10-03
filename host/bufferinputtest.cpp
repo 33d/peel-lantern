@@ -15,6 +15,7 @@ private:
 	CPPUNIT_TEST(testDisconnectedColumns);
 	CPPUNIT_TEST(testFirstRowWithSkips);
 	CPPUNIT_TEST(testInterleaving);
+	CPPUNIT_TEST(test_row_mapping);
 	CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -113,6 +114,31 @@ public:
 		CPPUNIT_ASSERT_EQUAL(0, (int) *it++);
 		CPPUNIT_ASSERT_EQUAL((l[53] << 4) & 0xFE, (int) *it++);
 		CPPUNIT_ASSERT_EQUAL((l[53] >> 4) & 0xFE, (int) *it++);
+	}
+
+	void test_row_mapping() {
+		Buffer buf(32, 32, {}, {},
+				{7, 6, 5, 4, 3, 2, 1, 0},
+				{3, 2, 1, 0, 7, 6, 5, 4});
+		BufferInput input(buf);
+		std::vector<uint8_t> data;
+		data.insert(data.begin(), 48, 0xFF);
+
+		input.addData(data.begin(), data.end());
+
+		// that even row should be in row 7
+		auto it = buf.row_start(0, 7);
+		// skip the header and the first three columns
+		it += 5;
+		const int* l = BufferInput::lookup;
+		CPPUNIT_ASSERT_EQUAL((l[0xFF] << 4) & 0xFE, (int) *it);
+
+		std::fill(data.begin(), data.end(), 0xF0);
+		input.addData(data.begin(), data.end());
+		// the odd row, skip the header and first column
+		it = buf.row_start(1, 3);
+		it += 3;
+		CPPUNIT_ASSERT_EQUAL((l[0xFF] << 4) & 0xF0, (int) *it);
 	}
 };
 
