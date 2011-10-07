@@ -106,7 +106,7 @@ template <class It> void BufferInput::addData(const It start, const It end) {
 }
 
 template <class It> void BufferInput::addHalfRow(const It& start) {
-	int tlc = out_row / 2 * 8 + (second_half_row ? 1 : 0);
+	int tlc = (out_row / 8) * 2 + (second_half_row ? 1 : 0);
 	int row = out_row % 8;
 	// convert this to the mapped row
 	row = second_half_row ? buffer.row_mapping_odd[row] : buffer.row_mapping_even[row];

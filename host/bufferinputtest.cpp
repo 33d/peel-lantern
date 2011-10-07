@@ -16,6 +16,7 @@ private:
 	CPPUNIT_TEST(testFirstRowWithSkips);
 	CPPUNIT_TEST(testInterleaving);
 	CPPUNIT_TEST(test_row_mapping);
+	CPPUNIT_TEST(test_complete_frame);
 	CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -139,6 +140,30 @@ public:
 		it = buf.row_start(1, 3);
 		it += 3;
 		CPPUNIT_ASSERT_EQUAL((l[0xFF] << 4) & 0xF0, (int) *it);
+	}
+
+	void test_complete_frame() {
+		Buffer buf(32, 32, {}, {});
+		BufferInput input(buf);
+		std::vector<uint8_t> data;
+		data.insert(data.begin(), 48, 0xFF);
+		int val = BufferInput::lookup[0xFF];
+		// Add this 64 times, this should be one frame
+		for (int i = 0; i < 32; i++) {
+			auto row = buf.row_start(i / 8 * 2, i % 8) + 4;
+			auto it = row;
+			CPPUNIT_ASSERT_EQUAL(0, (int) *it++);
+			CPPUNIT_ASSERT_EQUAL(0, (int) *it++);
+			CPPUNIT_ASSERT_EQUAL(0, (int) *it++);
+			// left half-row
+			input.addData(data.begin(), data.end());
+			it = row;
+			CPPUNIT_ASSERT_EQUAL(0, (int) *it++);
+			CPPUNIT_ASSERT_EQUAL((val << 4) & 0xFE, (int) *it++);
+			CPPUNIT_ASSERT_EQUAL((val >> 4) & 0xFE, (int) *it++);
+			// right half-row
+			input.addData(data.begin(), data.end());
+		}
 	}
 };
 
