@@ -16,8 +16,38 @@ environment variable ARDUINO_HOME to its path:
 
 = Running =
 
-MAKE SURE YOU SET THE ADDRESS OF THE SLAVE (to 0 for now) before use (see 
-below) - otherwise you'll probably get no output!
+There's two parts to this: the host software, which runs on the computer
+driving the lantern; and the slave, which runs on the slave microcontrollers.
+
+== Host ==
+
+The host software takes data from stdin, re-formats it to the format requried
+by the slaves, then sends it to stdout as fast as possible.  The idea is you 
+connect stdout to the serial port, and stdin to whatever generates the images.
+If you send it no input, the host program continues to send the most recent
+data it received.
+
+The image generator needs to produce 36x35 raw BGR (?) images.
+
+The serial port should be an FTDI USB-to-serial adapter.  Other brands are no
+good - they can't produce the required 2Mbit/s data rate.
+
+For example:
+
+  $ stty 2000000 < /dev/lantern
+  $ ./my-image-generator | ./peel-translate > /dev/lantern
+
+== Slave ==
+
+The slave wakes up when it's addressed, then sends the next 96 bytes of data
+straight to the TLC chips.  They then adjust the shift registers to match the
+row sent in the first byte of data.  They don't store any data themselves -
+there isn't enough CPU cycles between incoming bytes to do that.
+
+Since the slave doesn't store any data, you can use any AVR that
+runs at 16MHz and has a UART - the smallest being the ATtiny2313.
+
+= Uploading =
 
 To run either the master or slave on an Arduino, just run:
 
@@ -36,9 +66,13 @@ You can use other programmers (any supported by avrdude):
 
   make PROGRAMMER=buspirate upload
 
-To set the address of the slave chip:
+These commands will only program the slave with ID 0.  For the others, upload
+the code like this:
 
-  make ADDR=12 setaddr
+  make SLAVE_ID=4 clean upload
+
+You need to clean each time you change the slave ID - the slave ID is
+hard-coded to save CPU cycles.
 
 There are a few other parameters in the Makefile that you might need to change:
 
