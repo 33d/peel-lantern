@@ -29,14 +29,14 @@ public:
 
 	void test_row_start() {
 		Buffer buf(96, 32, {}, {});
-		CPPUNIT_ASSERT_EQUAL(0      , std::distance(buf.buf.begin(), buf.row_start(0, 0)));
-		CPPUNIT_ASSERT_EQUAL(97     , std::distance(buf.buf.begin(), buf.row_start(1, 0)));
-		CPPUNIT_ASSERT_EQUAL(97 *  2, std::distance(buf.buf.begin(), buf.row_start(2, 0)));
-		CPPUNIT_ASSERT_EQUAL(97 *  3, std::distance(buf.buf.begin(), buf.row_start(3, 0)));
-		CPPUNIT_ASSERT_EQUAL(97 *  7, std::distance(buf.buf.begin(), buf.row_start(7, 0)));
-		CPPUNIT_ASSERT_EQUAL(97 *  8, std::distance(buf.buf.begin(), buf.row_start(0, 1)));
-		CPPUNIT_ASSERT_EQUAL(97 *  9, std::distance(buf.buf.begin(), buf.row_start(1, 1)));
-		CPPUNIT_ASSERT_EQUAL(97 * 16, std::distance(buf.buf.begin(), buf.row_start(0, 2)));
+		CPPUNIT_ASSERT_EQUAL((std::ptrdiff_t ) 0      , std::distance(buf.buf.begin(), buf.row_start(0, 0)));
+		CPPUNIT_ASSERT_EQUAL((std::ptrdiff_t ) 97     , std::distance(buf.buf.begin(), buf.row_start(1, 0)));
+		CPPUNIT_ASSERT_EQUAL((std::ptrdiff_t ) 97 *  2, std::distance(buf.buf.begin(), buf.row_start(2, 0)));
+		CPPUNIT_ASSERT_EQUAL((std::ptrdiff_t ) 97 *  3, std::distance(buf.buf.begin(), buf.row_start(3, 0)));
+		CPPUNIT_ASSERT_EQUAL((std::ptrdiff_t ) 97 *  7, std::distance(buf.buf.begin(), buf.row_start(7, 0)));
+		CPPUNIT_ASSERT_EQUAL((std::ptrdiff_t ) 97 *  8, std::distance(buf.buf.begin(), buf.row_start(0, 1)));
+		CPPUNIT_ASSERT_EQUAL((std::ptrdiff_t ) 97 *  9, std::distance(buf.buf.begin(), buf.row_start(1, 1)));
+		CPPUNIT_ASSERT_EQUAL((std::ptrdiff_t ) 97 * 16, std::distance(buf.buf.begin(), buf.row_start(0, 2)));
 	}
 };
 
