@@ -23,8 +23,8 @@
 #define STATUS_LED (_BV(5)) // arduino 13
 
 // The start and end TLC pins to activate
-#define TLC_START 1 // inclusive
-#define TLC_END 13 // exclusive
+#define TLC_START 0 // inclusive
+#define TLC_END 16 // exclusive
 
 #define ROWS 8
 
@@ -117,14 +117,18 @@ ISR(RX_vect) {
 			state = TLC_START;
 		} else {
 			// Do we still have more data for this chip?  The bottom 4 bits tell
-			// us the pin for the current chip.
+			// us the pin for the current chip.  This condition should get
+		    // compiled out if TLC_END=16.
 			if ((state & 0x0F) < TLC_END) {
 				// Be sure to update the correct part of the framebuffer
 				Tlc.set(state++, lookup[data], row_start);
 			}
-			if ((state & 0x0F) >= TLC_END) {
-				// Set state to pin 0 of the next chip
-				state = (state & 0xF0) + 16;
+			// If TLC_END is 16, the >= test won't work, so handle that separately
+			if ((TLC_END == 16 && (state & 0x0F) == 0) || (state & 0x0F) >= TLC_END) {
+				// Set state to pin 0 of the next chip.  If TLC_END is 16,
+			    // it will already be in that state.
+			    if (TLC_END < 16)
+			        state = (state & 0xF0) + 16;
 				// Have we run out of chips to write to?
 				if (state >= NUM_TLCS * 16) {
 					// End of data, go back to address mode

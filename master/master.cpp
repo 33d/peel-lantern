@@ -36,7 +36,8 @@
 #define CTS _BV(4) // arduino 12
 #endif
 
-#define NUM_TLCS 4
+#define NUM_TLCS 3
+#define LEDS_PER_TLC 16
 
 // 1024x prescaling for the pattern timer
 #define PATTERN_CS (_BV(CS12) | _BV(CS10))
@@ -122,7 +123,7 @@ void send_addr(uint8_t addr) {
 
 void handle_data(uint8_t data) {
 	PORTB &= ~STATUS_LED;
-	if (pos.col >= NUM_TLCS * 12 * 2) {
+	if (pos.col >= NUM_TLCS * LEDS_PER_TLC * 2) {
 		// End of a row, go to the next one
 		++(pos.row);
 		// Toggle the LED at the end of a frame
@@ -132,7 +133,7 @@ void handle_data(uint8_t data) {
 		send_addr(pos.row / 8 * 2);
 		send(pos.row % 8);
 		pos.col = 0;
-	} else if (pos.col == NUM_TLCS * 12) {
+	} else if (pos.col == NUM_TLCS * LEDS_PER_TLC) {
 		// Half row
 		send_addr(pos.row / 8 * 2 + 1);
 		send(pos.row % 8);
@@ -170,10 +171,16 @@ void update_test_pattern() {
 			// followed by the row
 			send(row);
 
-			for (uint8_t col = 0; col < NUM_TLCS * 4; col++) {
-				for (uint8_t color = 0; color < 3; color++)
-					send(handler(c, color, col, row));
+			// byte is the TLC pin (ie. one for red, green, blue), col is the led number
+			for (uint8_t byte = 0, col = 0; true; byte += 3) {
+                for (uint8_t color = 0; color < 3; color++) {
+                    send(handler(c, color, col, row));
+                    if (byte + color >= NUM_TLCS * LEDS_PER_TLC)
+                        goto end;
+                }
 			}
+
+			end: ;
 		}
 	}
 }
