@@ -49,6 +49,13 @@ The Makefile supports unit testing using cunit, which is what the TEST_OBJECTS
 property is for and why the AVR files are compiled with .avr.o.  This project
 doesn't have unit tests at the moment.
 
+Send data to the Arduino Mega master controller like this:
+
+  $ stty 500000 crtscts -hup ignbrk  < /dev/ttyUSB0
+  $ cat my_image.raw > /dev/ttyUSB0 
+
+where my_image.raw is plain 32x32 BGR data.
+
 = Debugging =
 
 If you're using an Arduino Mega, you can read debugging information from the
